@@ -41,6 +41,7 @@ var reset = false;
 var auto = false;          // opened by the standby when Fortnite started: closes itself after Fortnite
 var afterUpdate = false;   // restarted by the updater: waits for the previous instance to quit
 string? previewPath = null;
+var demo = false;          // --demo: previews use made-up data (and also write the report)
 for (var i = 0; i < args.Length; i++)
 {
     switch (args[i])
@@ -50,6 +51,7 @@ for (var i = 0; i < args.Length; i++)
         case "--once": once = true; break;
         case "--reset-config": reset = true; break;
         case "--overlay-preview": previewPath = args[++i]; break;
+        case "--demo": demo = true; break;
         case "--auto": auto = true; break;
         case "--after-update": afterUpdate = true; break;
         case "-h":
@@ -114,11 +116,21 @@ if (string.IsNullOrWhiteSpace(config.DemosFolder))
 if (previewPath != null)
 {
     // Development: draws the overlay off-screen and saves it as PNG (idle + match in progress), then quits.
-    var previewData = Profiles.View(store.LoadData(), config);
-    // In memory only: the 3 latest matches count as "this session", to show a realistic session line.
-    foreach (var m in previewData.Matches.OrderByDescending(m => m.MatchStartUtc ?? m.AnalyzedAtUtc).Take(3))
+    var previewData = demo ? Demo.Data() : Profiles.View(store.LoadData(), config);
+    if (!demo)
     {
-        m.MatchStartUtc = DateTime.UtcNow;
+        // In memory only: the 3 latest matches count as "this session", to show a realistic session line.
+        foreach (var m in previewData.Matches.OrderByDescending(m => m.MatchStartUtc ?? m.AnalyzedAtUtc).Take(3))
+        {
+            m.MatchStartUtc = DateTime.UtcNow;
+        }
+    }
+    var previewDir = Path.GetDirectoryName(Path.GetFullPath(previewPath)) ?? ".";
+    if (demo)
+    {
+        File.WriteAllText(Path.Combine(previewDir, "report.html"), ReportWriter.Report(config, previewData, Profiles.List(previewData)));
+        File.WriteAllText(Path.Combine(previewDir, "overlay.html"), ReportWriter.Overlay(OverlayModel.Build(previewData, null, false)));
+        Console.WriteLine($"Preview: {Path.Combine(previewDir, "report.html")}");
     }
     if (!OperatingSystem.IsWindows())
     {
@@ -139,6 +151,14 @@ if (previewPath != null)
             var file = Path.Combine(Path.GetDirectoryName(Path.GetFullPath(previewPath)) ?? ".", name);
             Console.WriteLine(NativeOverlay.Snapshot(file) ? $"Preview: {file}" : $"Capture failed: {file}");
         }
+        // Unlocked (padlock and backdrop visible), idle.
+        NativeOverlay.Update(OverlayModel.Build(previewData, null, false));
+        NativeOverlay.ToggleLock();
+        Thread.Sleep(600);
+        var unlocked = Path.Combine(previewDir, Path.GetFileNameWithoutExtension(previewPath) + (style == "classic" ? "" : "-" + style) + "-unlocked.png");
+        Console.WriteLine(NativeOverlay.Snapshot(unlocked) ? $"Preview: {unlocked}" : $"Capture failed: {unlocked}");
+        NativeOverlay.ToggleLock();
+        Thread.Sleep(300);
     }
     return 0;
 }

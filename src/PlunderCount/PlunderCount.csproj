@@ -17,6 +17,8 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\lib\FortniteReplayReader\FortniteReplayReader.csproj" />
+    <!-- GDI+ (Windows only): anti-aliased, per-pixel alpha drawing of the overlay. -->
+    <PackageReference Include="System.Drawing.Common" Version="10.0.0" />
   </ItemGroup>
   <ItemGroup>
     <!-- What's new of this version: shown once after an update, and used as the GitHub release text (build.yml). -->

@@ -1,7 +1,7 @@
 name: Build PlunderCount.exe
 on:
   push:
-    branches: ['**']
+    branches: ['**', '!previews']
     tags: ['v*']
   workflow_dispatch:
 permissions:
@@ -26,3 +26,29 @@ jobs:
         with:
           files: dist/PlunderCount.exe
           body_path: RELEASE_NOTES.md
+      - name: Render previews (overlay + report) to the previews branch
+        if: ${{ !startsWith(github.ref, 'refs/tags/') }}
+        shell: pwsh
+        env:
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          $out = Join-Path $pwd 'previews'
+          $data = Join-Path $pwd 'demo-data'
+          New-Item -ItemType Directory -Force $out, $data | Out-Null
+          $p = Start-Process -FilePath (Resolve-Path dist\PlunderCount.exe) -ArgumentList @('--demo', '--data', $data, '--overlay-preview', (Join-Path $out 'overlay.png')) -PassThru
+          if (-not $p.WaitForExit(120000)) { $p.Kill() }
+          $edge = 'C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe'
+          foreach ($page in @(@('report.html', 'report.png', '1280,2800'), @('overlay.html', 'obs.png', '460,300'))) {
+            $src = Join-Path $out $page[0]
+            if (Test-Path $src) {
+              $url = 'file:///' + ($src -replace '\\', '/')
+              Start-Process -FilePath $edge -Wait -ArgumentList @('--headless=new', '--disable-gpu', '--hide-scrollbars', '--force-device-scale-factor=1', "--window-size=$($page[2])", "--screenshot=$(Join-Path $out $page[1])", '--virtual-time-budget=4000', $url)
+            }
+          }
+          Get-ChildItem $out | Format-Table Name, Length
+          Set-Location $out
+          git init -q
+          git checkout -q -b previews
+          git add -A
+          git -c user.name=ci -c user.email=ci@users.noreply.github.com commit -q -m "previews $env:GITHUB_SHA"
+          git push -q -f "https://x-access-token:$env:TOKEN@github.com/$env:GITHUB_REPOSITORY.git" previews
