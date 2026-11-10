@@ -53,16 +53,62 @@ public static class OverlayModel
 
         var best = Math.Max(d.Matches.Count > 0 ? d.Matches.Max(m => m.ChestsOpened) : 0, liveChests);
         var lastChests = last?.ChestsOpened ?? 0;
+        // Latest matches, oldest first (the match in progress last when its figures are readable).
+        var recent = d.Matches.OrderBy(m => m.MatchStartUtc ?? m.AnalyzedAtUtc).Select(m => m.ChestsOpened).ToList();
+        if (live != null)
+        {
+            recent.Add(liveChests);
+        }
+        recent = recent.TakeLast(16).ToList();
 
         // Right counter: the match in progress when readable, "…" while it cannot be read yet, else the last match.
         if (live != null)
         {
-            return new OverlayView(L.N(total), L.N(live.ChestsOpened), "current match", true, "● LIVE", rows, L.N(treasures), L.N(session.Sum(m => m.ChestsOpened) + liveChests), last != null ? L.N(last.ChestsOpened) : null, best, liveChests);
+            return new OverlayView(L.N(total), L.N(live.ChestsOpened), "current match", true, "● LIVE", rows, L.N(treasures), L.N(session.Sum(m => m.ChestsOpened) + liveChests), last != null ? L.N(last.ChestsOpened) : null, best, liveChests, recent, total);
         }
         if (inProgress)
         {
-            return new OverlayView(L.N(total), "…", "in progress", true, "● MATCH IN PROGRESS", rows, L.N(treasures), L.N(session.Sum(m => m.ChestsOpened) + liveChests), last != null ? L.N(last.ChestsOpened) : null, best, 0);
+            return new OverlayView(L.N(total), "…", "in progress", true, "● MATCH IN PROGRESS", rows, L.N(treasures), L.N(session.Sum(m => m.ChestsOpened) + liveChests), last != null ? L.N(last.ChestsOpened) : null, best, 0, recent, total);
         }
-        return new OverlayView(L.N(total), last != null ? L.N(last.ChestsOpened) : null, LastMatchCaption, false, null, rows, L.N(treasures), L.N(session.Sum(m => m.ChestsOpened) + liveChests), last != null ? L.N(last.ChestsOpened) : null, best, lastChests);
+        return new OverlayView(L.N(total), last != null ? L.N(last.ChestsOpened) : null, LastMatchCaption, false, null, rows, L.N(treasures), L.N(session.Sum(m => m.ChestsOpened) + liveChests), last != null ? L.N(last.ChestsOpened) : null, best, lastChests, recent, total);
+    }
+}
+
+/// <summary>Round totals worth celebrating: the overlay and the report show the road to the next one.</summary>
+public static class Milestones
+{
+    private static readonly int[] Steps = { 50, 100, 250, 500, 750, 1000, 1500, 2000, 2500, 3000, 4000, 5000 };
+
+    public static int Next(int total)
+    {
+        foreach (var s in Steps)
+        {
+            if (total < s) return s;
+        }
+        return (total / 2500 + 1) * 2500;
+    }
+
+    public static int Previous(int total)
+    {
+        if (total >= 5000) return total / 2500 * 2500;
+        var p = 0;
+        foreach (var s in Steps)
+        {
+            if (s <= total) p = s;
+        }
+        return p;
+    }
+
+    /// <summary>Every milestone up to and including <paramref name="next"/>.</summary>
+    public static IEnumerable<int> UpTo(int next)
+    {
+        foreach (var s in Steps)
+        {
+            if (s <= next) yield return s;
+        }
+        for (var m = 7500; m <= next; m += 2500)
+        {
+            yield return m;
+        }
     }
 }

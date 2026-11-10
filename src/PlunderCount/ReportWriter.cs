@@ -228,6 +228,42 @@ public static class ReportWriter
         .pbar i{display:block;height:100%;background:var(--gold)}
         .profiles{margin-top:14px;font:400 11px "JetBrains Mono",monospace;letter-spacing:.06em;color:var(--dim)}
         @media (max-width:1100px){main{padding:32px 28px 48px}.hero,.split,.split.even{grid-template-columns:1fr;gap:40px}.huge{font-size:140px}}
+        .voy{margin-top:30px;max-width:560px}
+        .vtrack{position:relative;height:1px;background:rgba(255,255,255,.12);margin:0 6px}
+        .vtrack i{position:absolute;left:0;top:-.5px;height:2px;background:linear-gradient(90deg,rgba(230,200,143,.15),var(--gold))}
+        .vm{position:absolute;top:0;transform:translate(-50%,-50%)}
+        .vm b{display:block;width:7px;height:7px;transform:rotate(45deg);border:1px solid var(--gold);background:var(--panel)}
+        .vm.on b{background:var(--gold)}
+        .vm em{position:absolute;top:14px;left:50%;transform:translateX(-50%);font:400 9.5px "JetBrains Mono",monospace;font-style:normal;letter-spacing:.08em;color:var(--dim)}
+        .vm.next em{color:var(--gold)}
+        .vship{position:absolute;top:0;width:9px;height:9px;border-radius:50%;background:#f7f2e6;transform:translate(-50%,-50%);box-shadow:0 0 0 4px rgba(230,200,143,.18),0 0 18px rgba(230,200,143,.7);animation:breathe 2.6s ease-in-out infinite}
+        .vcap{margin-top:36px;font-size:10.5px;letter-spacing:.14em;color:var(--dim)}
+        .vcap span{color:var(--gold)}
+        .ins{display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid var(--line)}
+        .in{padding:28px 24px;border-left:1px solid var(--line);min-width:0}
+        .in:first-child{border-left:none;padding-left:0}
+        .il{font-size:10px;letter-spacing:.2em;color:var(--muted)}
+        .iv{margin-top:12px;font:200 42px/1 "Sora",sans-serif;letter-spacing:-.03em}
+        .iv.violet{color:var(--violet)}.iv.gold{color:var(--gold)}
+        .ic{margin-top:10px;font-size:12.5px;color:var(--dim)}
+        .legend{display:flex;flex-wrap:wrap;gap:22px;margin-top:10px;font-size:9.5px;letter-spacing:.14em;color:var(--dim)}
+        .lg{display:inline-flex;align-items:center;gap:8px}.lg.v{color:var(--violet)}.lg.g{color:var(--gold)}
+        .ld{width:5px;height:5px;border-radius:50%;background:rgba(242,239,232,.6)}
+        .lw{width:6px;height:6px;transform:rotate(45deg);border:1px solid var(--gold)}
+        .ll{width:16px;height:1px;background:rgba(242,239,232,.35)}
+        .stars{display:block;width:100%;height:auto;margin-top:14px;overflow:visible}
+        .stars text{font:400 9.5px "JetBrains Mono",monospace;letter-spacing:.06em;fill:#5a5955}
+        .stars g.m{cursor:default}
+        .stars g.m:hover .d{fill:#fff;r:4.5px}
+        .stars g.m:hover .s{fill:#fff}
+        .stars g.m:hover>rect:first-child{fill:rgba(255,255,255,.035)}
+        .stars .s{transform-box:fill-box;transform-origin:center;animation:twinkle 3.4s ease-in-out infinite}
+        .stars g.m:nth-child(3n) .s{animation-delay:-1.2s}.stars g.m:nth-child(3n+1) .s{animation-delay:-2.3s}
+        @keyframes twinkle{50%{transform:scale(.72);opacity:.7}}
+        .stars .ping{transform-box:fill-box;transform-origin:center;animation:ping 2.2s ease-out infinite}
+        @keyframes ping{from{transform:scale(.5);opacity:.9}to{transform:scale(1.9);opacity:0}}
+        #starread.hot,#readout{transition:color .15s}#starread.hot{color:var(--ink)}
+        @media (max-width:1100px){.ins{grid-template-columns:repeat(2,1fr)}.in:nth-child(3){border-left:none;padding-left:0}}
         @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
         """;
 
@@ -310,6 +346,7 @@ public static class ReportWriter
                 <div class="eyebrow">CHESTS IN TOTAL</div>
                 <div class="huge">{N(totalChests)}</div>
                 <div class="sub">opened or destroyed by you · {N(session)} since the tool started</div>
+                {Voyage(totalChests)}
               </div>
               <div class="krows">
                 {Row("MATCHES ANALYZED", N(matches.Count))}
@@ -318,6 +355,7 @@ public static class ReportWriter
                 {Row("TREASURES FOUND", "✦ " + N(treasures), every > 0 ? $"· 1 PER {N(every)}" : null, "violet")}
               </div>
             </section>
+            {Insights(matches)}{StarChart(matches)}
             """);
 
         // Chests per day: 30 pill bars, best day in gold, hover shows the day in the readout.
@@ -456,12 +494,144 @@ public static class ReportWriter
             var c=document.getElementById('chart'),r=document.getElementById('readout');
             if(c&&r){c.querySelectorAll('.col').forEach(function(col){col.addEventListener('mouseenter',function(){c.classList.add('hovering');c.querySelectorAll('.col.hov').forEach(function(x){x.classList.remove('hov')});col.classList.add('hov');r.textContent=col.getAttribute('data-r')})});
             c.addEventListener('mouseleave',function(){c.classList.remove('hovering');c.querySelectorAll('.col.hov').forEach(function(x){x.classList.remove('hov')});r.textContent=r.getAttribute('data-default')})}
+            var sc=document.getElementById('stars'),sr=document.getElementById('starread');
+            if(sc&&sr){sc.querySelectorAll('g.m').forEach(function(m){m.addEventListener('mouseenter',function(){sr.textContent=m.getAttribute('data-r');sr.classList.add('hot')})});
+            sc.addEventListener('mouseleave',function(){sr.textContent=sr.getAttribute('data-default');sr.classList.remove('hot')})}
             document.querySelectorAll('.more-btn').forEach(function(btn){btn.addEventListener('click',function(){var s=btn.closest('section');s.classList.add('all');var n=btn.getAttribute('data-all'),m=document.getElementById('mcount');if(n&&m)m.textContent=n;btn.remove()})});
             })();</script>
             """;
         sb.Append("<footer class=\"mono\"><span>COUNTS THE CHESTS YOU OPENED OR DESTROYED, READ FROM YOUR REPLAYS AFTER EACH MATCH · AMMO AND FOOD BOXES NOT COUNTED · ✦✦ GOLDEN CHEST (CERTAIN) · ✦ FROM ONE OF YOUR CHESTS</span><span>PLUNDER COUNT · NOT AFFILIATED WITH EPIC GAMES</span></footer>");
         sb.Append(script).Append(interactions).Append("</main></body></html>");
         return sb.ToString();
+    }
+
+    private static string Inv(double d) => d.ToString("0.#", CultureInfo.InvariantCulture);
+
+    /// <summary>The road to the next milestone: passed milestones as filled diamonds, a glowing marker where you are.</summary>
+    private static string Voyage(int total)
+    {
+        var next = Milestones.Next(total);
+        var sb = new StringBuilder();
+        var pos = 100.0 * total / next;
+        sb.Append($"""<div class="voy"><div class="vtrack"><i style="width:{Inv(pos)}%"></i>""");
+        foreach (var m in Milestones.UpTo(next).Where(m => 100.0 * m / next >= 12).TakeLast(5))
+        {
+            var cls = m == next ? "next" : "on";
+            sb.Append($"""<span class="vm {cls}" style="left:{Inv(100.0 * m / next)}%"><b></b><em>{m.ToString("N0", Fr)}</em></span>""");
+        }
+        sb.Append($"""<span class="vship" style="left:{Inv(pos)}%"></span></div>""");
+        sb.Append($"""<div class="vcap mono">NEXT MILESTONE · {next.ToString("N0", Fr)} · <span>{(next - total).ToString("N0", Fr)} TO GO</span></div></div>""");
+        return sb.ToString();
+    }
+
+    /// <summary>Four things the numbers say: dry spell, longest drought, best mode, peak hour.</summary>
+    private static string Insights(IReadOnlyList<MatchRecord> newestFirst)
+    {
+        if (newestFirst.Count == 0)
+        {
+            return "";
+        }
+        var chrono = newestFirst.Reverse().ToList();
+        int run = 0, longest = 0;
+        var anyTreasure = false;
+        foreach (var m in chrono)
+        {
+            run += m.ChestsOpened;
+            if (m.TreasureFinds.Count > 0)
+            {
+                anyTreasure = true;
+                longest = Math.Max(longest, run);
+                run = 0;
+            }
+        }
+        longest = Math.Max(longest, run);
+        var mode = chrono.GroupBy(m => Pretty.Playlist(m.Playlist)).Where(g => g.Count() >= 2)
+            .Select(g => (Name: g.Key, Avg: g.Average(m => m.ChestsOpened), Count: g.Count())).OrderByDescending(x => x.Avg).FirstOrDefault();
+        var hour = chrono.GroupBy(m => When(m).Hour).Where(g => g.Count() >= 2)
+            .Select(g => (Hour: g.Key, Avg: g.Average(m => m.ChestsOpened), Count: g.Count())).OrderByDescending(x => x.Avg).FirstOrDefault();
+
+        string Cell(string label, string value, string caption, string cls = "") =>
+            $"""<div class="in"><div class="il mono">{label}</div><div class="iv{(cls.Length > 0 ? " " + cls : "")}">{value}</div><div class="ic">{caption}</div></div>""";
+
+        var sb = new StringBuilder("<section class=\"ins\">");
+        sb.Append(Cell("DRY SPELL", run.ToString("N0", Fr), anyTreasure ? "chests since your last treasure" : "chests, no treasure yet", "violet"));
+        sb.Append(Cell("LONGEST DROUGHT", longest.ToString("N0", Fr), "chests between two treasures"));
+        sb.Append(mode.Name != null
+            ? Cell("BEST MODE", mode.Avg.ToString("0.0", Fr), $"per match in {H(mode.Name)} · {mode.Count} played", "gold")
+            : Cell("BEST MODE", "—", "play a mode twice to compare"));
+        sb.Append(hour.Count > 0
+            ? Cell("PEAK HOUR", $"{hour.Hour:00}:00", $"{hour.Avg.ToString("0.0", Fr)} chests per match around then")
+            : Cell("PEAK HOUR", "—", "not enough matches yet"));
+        return sb.Append("</section>").ToString();
+    }
+
+    /// <summary>Every match as a star: height = chests, ✦ = a treasure (linked like a constellation), ◇ = a win.</summary>
+    private static string StarChart(IReadOnlyList<MatchRecord> newestFirst)
+    {
+        var ms = newestFirst.Take(60).Reverse().ToList();
+        if (ms.Count < 2)
+        {
+            return "";
+        }
+        const double W = 1160, Hh = 280, Lp = 36, Rp = 14, Tp = 18, Bp = 26;
+        var max = Math.Max(5, (int)Math.Ceiling(ms.Max(m => m.ChestsOpened) / 5.0) * 5);
+        double X(int i) => Lp + i * (W - Lp - Rp) / (ms.Count - 1);
+        double Y(double v) => Tp + (Hh - Tp - Bp) * (1 - v / max);
+
+        var sb = new StringBuilder();
+        var legend = "<span class=\"lg\"><i class=\"ld\"></i>MATCH</span><span class=\"lg v\">✦ TREASURE</span><span class=\"lg g\"><i class=\"lw\"></i>WIN</span><span class=\"lg\"><i class=\"ll\"></i>5-MATCH AVERAGE</span>";
+        var def = $"LAST {ms.Count} MATCHES";
+        sb.Append($"""<section class="block"><div class="bhead"><h2>Star chart</h2><div class="mono dim" id="starread" data-default="{def}">{def}</div></div><div class="legend mono">{legend}</div>""");
+        sb.Append($"""<svg class="stars" id="stars" viewBox="0 0 {Inv(W)} {Inv(Hh)}" role="img" aria-label="Chests per match">""");
+        foreach (var gv in new[] { 0, max / 2, max })
+        {
+            sb.Append($"""<line x1="{Inv(Lp)}" x2="{Inv(W - Rp)}" y1="{Inv(Y(gv))}" y2="{Inv(Y(gv))}" stroke="rgba(255,255,255,.055)"/><text x="{Inv(Lp - 10)}" y="{Inv(Y(gv) + 3)}" text-anchor="end">{gv}</text>""");
+        }
+        // Rolling average of 5 matches.
+        var avg = new StringBuilder();
+        for (var i = 0; i < ms.Count; i++)
+        {
+            var from = Math.Max(0, i - 4);
+            var a = ms.Skip(from).Take(i - from + 1).Average(m => m.ChestsOpened);
+            avg.Append($"{(i == 0 ? "M" : " L")}{Inv(X(i))},{Inv(Y(a))}");
+        }
+        sb.Append($"""<path d="{avg}" fill="none" stroke="rgba(242,239,232,.2)" stroke-width="1.2" stroke-linejoin="round"/>""");
+        // Constellation: the matches that gave a treasure, linked.
+        var stars = Enumerable.Range(0, ms.Count).Where(i => ms[i].TreasureFinds.Count > 0).ToList();
+        if (stars.Count > 1)
+        {
+            sb.Append($"""<polyline points="{string.Join(" ", stars.Select(i => $"{Inv(X(i))},{Inv(Y(ms[i].ChestsOpened))}"))}" fill="none" stroke="rgba(207,194,245,.38)" stroke-width="1" stroke-dasharray="2 5" stroke-linecap="round"/>""");
+        }
+        for (var i = 0; i < ms.Count; i++)
+        {
+            var m = ms[i];
+            double x = X(i), y = Y(m.ChestsOpened);
+            var win = m.Placement == 1;
+            var tr = m.TreasureFinds.Count > 0;
+            var read = $"{L.DateTimeShort(When(m)).ToUpperInvariant()} · {Pretty.Playlist(m.Playlist).ToUpperInvariant()} · {m.ChestsOpened} CHESTS"
+                + (win ? " · WIN" : "") + (tr ? " · ✦ " + string.Join(", ", m.TreasureFinds.Select(f => f.DisplayName)).ToUpperInvariant() : "");
+            sb.Append($"""<g class="m" data-r="{H(read)}"><rect x="{Inv(x - 9)}" y="{Inv(Tp)}" width="18" height="{Inv(Hh - Tp - Bp)}" fill="transparent"/>""");
+            if (win)
+            {
+                sb.Append($"""<rect x="{Inv(x - 6)}" y="{Inv(y - 6)}" width="12" height="12" transform="rotate(45 {Inv(x)} {Inv(y)})" fill="none" stroke="#e6c88f" stroke-width="1"/>""");
+            }
+            if (tr)
+            {
+                const double r = 8, k = 1.9;
+                sb.Append($"""<circle cx="{Inv(x)}" cy="{Inv(y)}" r="13" fill="rgba(207,194,245,.1)"/><path class="s" d="M{Inv(x)},{Inv(y - r)} L{Inv(x + k)},{Inv(y - k)} L{Inv(x + r)},{Inv(y)} L{Inv(x + k)},{Inv(y + k)} L{Inv(x)},{Inv(y + r)} L{Inv(x - k)},{Inv(y + k)} L{Inv(x - r)},{Inv(y)} L{Inv(x - k)},{Inv(y - k)} Z" fill="#cfc2f5"/>""");
+            }
+            else
+            {
+                sb.Append($"""<circle class="d" cx="{Inv(x)}" cy="{Inv(y)}" r="2.6" fill="{(win ? "#e6c88f" : "rgba(242,239,232,.6)")}"/>""");
+            }
+            if (i == ms.Count - 1)
+            {
+                sb.Append($"""<circle class="ping" cx="{Inv(x)}" cy="{Inv(y)}" r="7" fill="none" stroke="#f2efe8" stroke-width="1"/>""");
+            }
+            sb.Append("</g>");
+        }
+        sb.Append($"""<text x="{Inv(Lp)}" y="{Inv(Hh - 6)}">{L.DateTimeShort(When(ms[0])).ToUpperInvariant()}</text><text x="{Inv(W - Rp)}" y="{Inv(Hh - 6)}" text-anchor="end">LATEST</text>""");
+        return sb.Append("</svg></section>").ToString();
     }
 
     private static string LoadingCard(ScanProgress? p)

@@ -252,13 +252,17 @@ public static class OverlayRenderer
         return locked ? st : st with { Status = "UNLOCKED", StatusColor = Silver };
     }
 
-    // ---- 2a · Glass card (default) ------------------------------------------------------------------
+    // ---- Card (default): the "dial" ---------------------------------------------------------------
     //
-    //   ◇ PLUNDER · COUNT                         ● LIVE
-    //   642 chests                                  12
-    //                                       THIS MATCH
-    //   ▬▬▬▬▬▬▬▬▬▬▬▬ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─   (ticks: this match vs best match)
-    //   SESSION 12        LAST 19        TREASURES ✦ 22
+    //   ◇ PLUNDER · COUNT                              ● LIVE
+    //    ╭ ' ' ' ╮      TOTAL CHESTS
+    //   '   12    '     642
+    //   ' THIS MATCH'   NEXT 750            108 TO GO
+    //    ╰ BEST 26╯     ━━━━━━━━━━━━━◆─────────────
+    //   ▂▅▃▆▂▇▄▅▃▆▄█▅▃▆▄                SESSION 12   ✦ 22
+    //
+    // The dial compares this match (or the last one) with your best match; the line is the road to the next
+    // milestone; the small bars are your latest matches (best in gold, newest highlighted).
 
     /// <param name="lockRect">Click target that locks the overlay (window coordinates); empty when locked.</param>
     public static Bitmap Glass(OverlayView v, bool locked, float s, out Rectangle lockRect)
@@ -267,23 +271,19 @@ public static class OverlayRenderer
         var margin = 30f * s;          // room for the shadow
         var padX = 20f * s;
         var padTop = 16f * s;
-        var padBottom = 14f * s;
-        var cardW = 340f * s;
+        var padBottom = 16f * s;
+        var cardW = 360f * s;
 
         using var fHead = F(Mono, 9.5f * s);
-        using var fTotal = F(DisplayXL, 72f * s);
-        using var fUnit = F(DisplayL, 13f * s);
         using var fSec = F(DisplayXL, 30f * s);
-        using var fSecLabel = F(Mono, 9f * s);
-        using var fFoot = F(Mono, 10.5f * s);
-        using var fFootValue = F(MonoM, 10.5f * s);
+        using var fTiny = F(Mono, 8f * s);
+        using var fFoot = F(Mono, 10f * s);
+        using var fFootValue = F(MonoM, 10f * s);
 
         var headH = 12f * s;
-        var totalAscent = Ascent(fTotal);
-        var mainH = 72f * s * 0.9f;   // line-height .9
-        var ticksH = 3f * s;
-        var footH = fFoot.GetHeight();
-        var cardH = padTop + headH + 10 * s + mainH + 12 * s + ticksH + 12 * s + footH + padBottom;
+        var dial = 96f * s;
+        var histH = 24f * s;
+        var cardH = padTop + headH + 14 * s + dial + 16 * s + histH + padBottom;
 
         var w = (int)Math.Ceiling(cardW + 2 * margin);
         var h = (int)Math.Ceiling(cardH + 2 * margin);
@@ -291,17 +291,17 @@ public static class OverlayRenderer
         using var g = Prepare(bmp);
 
         var card = new RectangleF(margin, margin, cardW, cardH);
-        var radius = 14f * s;
+        var radius = 16f * s;
         Shadow(g, card, radius, s);
 
         using (var path = Round(card, radius))
         {
-            // No backdrop blur behind a window: the glass is denser than in the mockup so it stays readable on any map.
-            using (var fill = new LinearGradientBrush(new RectangleF(card.X, card.Y - 1, card.Width, card.Height + 2), Color.FromArgb(214, 18, 18, 22), Color.FromArgb(232, 10, 10, 12), LinearGradientMode.Vertical))
+            // No backdrop blur behind a window: the glass is dense enough to stay readable on any map.
+            using (var fill = new LinearGradientBrush(new RectangleF(card.X, card.Y - 1, card.Width, card.Height + 2), Color.FromArgb(218, 18, 18, 22), Color.FromArgb(236, 10, 10, 12), LinearGradientMode.Vertical))
             {
                 g.FillPath(fill, path);
             }
-            using var edgeBrush = new LinearGradientBrush(new RectangleF(card.X, card.Y - 1, card.Width, card.Height + 2), Color.FromArgb(31, 255, 255, 255), Color.FromArgb(10, 255, 255, 255), LinearGradientMode.Vertical);
+            using var edgeBrush = new LinearGradientBrush(new RectangleF(card.X, card.Y - 1, card.Width, card.Height + 2), Color.FromArgb(34, 255, 255, 255), Color.FromArgb(10, 255, 255, 255), LinearGradientMode.Vertical);
             using var edge = new Pen(edgeBrush, Math.Max(1f, s));
             g.DrawPath(edge, path);
         }
@@ -319,62 +319,105 @@ public static class OverlayRenderer
         Tracked(g, st.Status, fHead, st.StatusColor, right - stW, headTop, 2.1f * s);
         Dot(g, right - stW - 9.5f * s, mid, 5 * s, st.StatusColor);
         lockRect = locked ? Rectangle.Empty : Rectangle.Round(new RectangleF(right - stW - 20 * s, y - 8 * s, stW + 28 * s, headH + 16 * s));
-        y += headH + 10 * s;
+        y += headH + 14 * s;
 
-        // Total + "chests" on the same baseline, current / last match on the right.
-        var baseline = y + mainH * 0.86f;
-        var totalTrack = -0.05f * 72f * s;
-        Tracked(g, v.Total, fTotal, Ink, x - 3 * s, baseline - totalAscent, totalTrack);
-        var totalW = TrackedWidth(v.Total, fTotal, totalTrack);
-        Tracked(g, "chests", fUnit, Muted, x - 3 * s + totalW + 8 * s, baseline - Ascent(fUnit), 0);
-
+        // ---- Dial: 48 ticks over 270°, lit up to "this match / best match".
+        var cx = x + dial / 2;
+        var cy = y + dial / 2;
+        var R = dial / 2 - 1 * s;
+        const int tickCount = 48;
+        var lit = (int)Math.Round(tickCount * st.Ticks / 26.0);
+        using (var off = new Pen(Color.FromArgb(30, 255, 255, 255), 1.5f * s) { StartCap = LineCap.Round, EndCap = LineCap.Round })
+        using (var on = new Pen(st.TickColor, 1.7f * s) { StartCap = LineCap.Round, EndCap = LineCap.Round })
+        {
+            for (var i = 0; i < tickCount; i++)
+            {
+                var a = (135.0 + 270.0 * i / (tickCount - 1)) * Math.PI / 180.0;
+                var len = (i % 12 == 0 || i == tickCount - 1 ? 9f : 6f) * s;
+                float cos = (float)Math.Cos(a), sin = (float)Math.Sin(a);
+                g.DrawLine(i < lit ? on : off, cx + (R - len) * cos, cy + (R - len) * sin, cx + R * cos, cy + R * sin);
+            }
+        }
+        if (lit > 0)
+        {
+            // Glowing head at the end of the lit arc.
+            var a = (135.0 + 270.0 * (lit - 1) / (tickCount - 1)) * Math.PI / 180.0;
+            Dot(g, cx + (R - 13 * s) * (float)Math.Cos(a), cy + (R - 13 * s) * (float)Math.Sin(a), 3.5f * s, st.SecColor);
+        }
         var secTrack = -0.03f * 30f * s;
         var secW = TrackedWidth(st.Sec, fSec, secTrack);
-        var labelW = TrackedWidth(st.SecLabel, fSecLabel, 1.8f * s);
-        var labelTop = baseline - 6 * s - fSecLabel.GetHeight() + 4 * s;
-        Tracked(g, st.SecLabel, fSecLabel, Dim, right - labelW, labelTop, 1.8f * s);
-        var secBaseline = labelTop - 5 * s;
-        Tracked(g, st.Sec, fSec, st.SecColor, right - secW, secBaseline - Ascent(fSec) * 0.92f, secTrack);
-        y += mainH + 12 * s;
+        Tracked(g, st.Sec, fSec, st.SecColor, cx - secW / 2, cy + 7 * s - Ascent(fSec), secTrack);
+        var slW = TrackedWidth(st.SecLabel, fTiny, 1 * s);
+        Tracked(g, st.SecLabel, fTiny, Dim, cx - slW / 2, cy + 13 * s, 1 * s);
+        var bestText = "BEST " + v.Best;
+        var bW = TrackedWidth(bestText, fTiny, 1 * s);
+        Tracked(g, bestText, fTiny, Color.FromArgb(150, Gold), cx - bW / 2, cy + R - 9 * s, 1 * s);
 
-        // 26 ticks: this match (or the last one) against the best match.
-        var gap = 3f * s;
-        var tw = (cardW - 2 * padX - 25 * gap) / 26;
-        using (var on = new SolidBrush(st.TickColor))
-        using (var off = new SolidBrush(Color.FromArgb(20, 255, 255, 255)))
+        // ---- Right column: total, then the road to the next milestone.
+        var x2 = x + dial + 22 * s;
+        var colW = right - x2;
+        Tracked(g, "TOTAL CHESTS", fTiny, Dim, x2, y + 1 * s, 1.6f * s);
+        var totalPx = 58f * s;
+        using (var probe = F(DisplayXL, totalPx))
         {
-            for (var i = 0; i < 26; i++)
+            var pw = TrackedWidth(v.Total, probe, -0.05f * totalPx);
+            if (pw > colW) totalPx *= colW / pw;
+        }
+        using (var fTotal = F(DisplayXL, totalPx))
+        {
+            Tracked(g, v.Total, fTotal, st.TotalColor, x2 - 3 * s, y + 62 * s - Ascent(fTotal), -0.05f * totalPx);
+        }
+
+        var next = Milestones.Next(v.TotalValue);
+        var prev = Milestones.Previous(v.TotalValue);
+        var frac = Math.Clamp((v.TotalValue - prev) / (float)Math.Max(1, next - prev), 0f, 1f);
+        var my = y + 72 * s;
+        Tracked(g, "NEXT ", fTiny, Dim, x2, my, 1.2f * s);
+        Tracked(g, next.ToString("N0", L.Culture), fTiny, Ink, x2 + TrackedWidth("NEXT ", fTiny, 1.2f * s) + 1.2f * s, my, 1.2f * s);
+        var togo = (next - v.TotalValue).ToString("N0", L.Culture) + " TO GO";
+        Tracked(g, togo, fTiny, Gold, right - TrackedWidth(togo, fTiny, 1.2f * s), my, 1.2f * s);
+        var ly = y + 91 * s;
+        using (var track = new SolidBrush(Color.FromArgb(26, 255, 255, 255)))
+        {
+            g.FillRectangle(track, x2, ly - 0.5f * s, colW, Math.Max(1f, s));
+        }
+        var fillW = Math.Max(2 * s, colW * frac);
+        using (var fillBrush = new LinearGradientBrush(new RectangleF(x2 - 1, ly - 2 * s, fillW + 2, 4 * s), Color.FromArgb(40, Gold), Gold, LinearGradientMode.Horizontal))
+        {
+            g.FillRectangle(fillBrush, x2, ly - 1 * s, fillW, 2 * s);
+        }
+        Diamond(g, x2 + fillW, ly, 5 * s, GoldPale, filled: true, s, glow: true);
+        y += dial + 16 * s;
+
+        // ---- Latest matches as small bars (best in gold, newest highlighted) + session and treasures.
+        var recent = v.Recent ?? Array.Empty<int>();
+        var bw = 5f * s;
+        var bgap = 4f * s;
+        if (recent.Count > 0)
+        {
+            var max = Math.Max(1, recent.Max());
+            var bestIdx = recent.ToList().LastIndexOf(recent.Max());
+            for (var i = 0; i < recent.Count; i++)
             {
-                using var p = Round(new RectangleF(x + i * (tw + gap), y, tw, ticksH), 1 * s);
-                g.FillPath(i < st.Ticks ? on : off, p);
+                var bh = Math.Max(2 * s, histH * recent[i] / max);
+                var color = i == recent.Count - 1 ? st.SecColor == Gold ? Ink : st.SecColor
+                    : i == bestIdx ? Gold
+                    : Color.FromArgb(56, 255, 255, 255);
+                using var p = Round(new RectangleF(x + i * (bw + bgap), y + histH - bh, bw, bh), 2 * s);
+                using var b = new SolidBrush(color);
+                g.FillPath(b, p);
             }
         }
-        y += ticksH + 12 * s;
-
-        // SESSION 12 · LAST 19 · TREASURES ✦ 22, spread across the card.
-        var ft = 0.08f * 10.5f * s;
-        var items = new (string Label, string Value, Color Color, bool Star)[]
-        {
-            ("SESSION", v.Session, Ink, false),
-            ("LAST", v.Last ?? "—", Ink, false),
-            ("TREASURES", v.Treasures, VioletPale, true),
-        };
-        var widths = items.Select(it => TrackedWidth(it.Label + " ", fFoot, ft) + (it.Star ? 13 * s : 0) + TrackedWidth(it.Value, fFootValue, ft)).ToArray();
-        var free = (cardW - 2 * padX - widths.Sum()) / (items.Length - 1);
-        var fx = x;
-        for (var i = 0; i < items.Length; i++)
-        {
-            var it = items[i];
-            Tracked(g, it.Label + " ", fFoot, Muted, fx, y, ft);
-            var vx = fx + TrackedWidth(it.Label + " ", fFoot, ft);
-            if (it.Star)
-            {
-                Sparkle(g, vx + 4.5f * s, y + fFoot.GetHeight() * 0.52f, 4.5f * s, it.Color);
-                vx += 13 * s;
-            }
-            Tracked(g, it.Value, fFootValue, it.Color, vx, y, ft);
-            fx += widths[i] + free;
-        }
+        var ft = 0.08f * 10f * s;
+        var fy = y + histH - fFoot.GetHeight() + 1 * s;
+        var trW = TrackedWidth(v.Treasures, fFootValue, ft);
+        Tracked(g, v.Treasures, fFootValue, VioletPale, right - trW, fy, ft);
+        Sparkle(g, right - trW - 9 * s, fy + fFoot.GetHeight() * 0.52f, 4.5f * s, VioletPale);
+        var sesW = TrackedWidth(v.Session, fFootValue, ft);
+        var sx = right - trW - 9 * s - 18 * s - sesW;
+        Tracked(g, v.Session, fFootValue, Ink, sx, fy, ft);
+        var sl = "SESSION ";
+        Tracked(g, sl, fFoot, Muted, sx - TrackedWidth(sl, fFoot, ft) - ft, fy, ft);
         return bmp;
     }
 
@@ -442,11 +485,25 @@ public static class OverlayRenderer
         Shadowed(g, v.Total, fTotal, st.TotalColor, x - 2 * s, y + totalH * 0.88f - ascent, totalTrack, s);
         y += totalH + 8 * s;
 
-        // Gold rule fading out.
-        using (var rule = new LinearGradientBrush(new RectangleF(x - 1, y, 121 * s, 1), Gold, Color.FromArgb(0, Gold), LinearGradientMode.Horizontal))
+        // Road to the next milestone: dim track, gold up to where you are, diamond at the head.
+        var next = Milestones.Next(v.TotalValue);
+        var prev = Milestones.Previous(v.TotalValue);
+        var frac = Math.Clamp((v.TotalValue - prev) / (float)Math.Max(1, next - prev), 0f, 1f);
+        var ruleW = 120 * s;
+        using (var shade = new SolidBrush(Color.FromArgb(90, 0, 0, 0)))
         {
-            g.FillRectangle(rule, x, y, 120 * s, Math.Max(1f, s));
+            g.FillRectangle(shade, x, y + 1 * s, ruleW, Math.Max(1f, s));
         }
+        using (var track = new SolidBrush(Color.FromArgb(70, 255, 255, 255)))
+        {
+            g.FillRectangle(track, x, y, ruleW, Math.Max(1f, s));
+        }
+        var fillW = Math.Max(2 * s, ruleW * frac);
+        using (var rule = new SolidBrush(Gold))
+        {
+            g.FillRectangle(rule, x, y - 0.5f * s, fillW, 2 * s);
+        }
+        Diamond(g, x + fillW, y + 0.5f * s, 5 * s, GoldPale, filled: true, s, glow: true);
         y += 1 + 10 * s;
 
         // Label / value grid.
