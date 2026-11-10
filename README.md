@@ -39,7 +39,7 @@ Fortnite only writes a replay's decryption key when the match ends, so chests ar
 
 Two styles, switch in **Settings → Overlay style**:
 
-- **Card** (default): a glass card with your total, the current or last match, a bar comparing it with your best match, your session and treasures. The status light shows IDLE, IN MATCH, LIVE or UNLOCKED.
+- **Card** (default): a glass card with a dial (this match against your best match), your total, the road to your next milestone and your latest matches as small bars. The status light shows IDLE, IN MATCH, LIVE or UNLOCKED.
 - **Compact**: only the figures with a soft shadow, no background. While unlocked a dashed frame shows so you can move it.
 
 | Shortcut | What it does |

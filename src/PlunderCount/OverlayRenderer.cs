@@ -159,8 +159,8 @@ public static class OverlayRenderer
         var pts = new[] { new PointF(cx, cy - h), new PointF(cx + h, cy), new PointF(cx, cy + h), new PointF(cx - h, cy) };
         if (glow)
         {
-            using var halo = new SolidBrush(Color.FromArgb(50, color));
-            g.FillEllipse(halo, cx - h * 2.2f, cy - h * 2.2f, h * 4.4f, h * 4.4f);
+            using var halo = new SolidBrush(Color.FromArgb(34, color));
+            g.FillEllipse(halo, cx - h * 1.7f, cy - h * 1.7f, h * 3.4f, h * 3.4f);
         }
         if (filled)
         {
