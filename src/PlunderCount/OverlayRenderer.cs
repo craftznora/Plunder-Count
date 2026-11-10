@@ -177,10 +177,10 @@ public static class OverlayRenderer
     /// <summary>Status dot with a soft glow (box-shadow: 0 0 10px color).</summary>
     private static void Dot(Graphics g, float cx, float cy, float d, Color color)
     {
-        for (var i = 4; i >= 1; i--)
+        for (var i = 3; i >= 1; i--)
         {
-            var r = d / 2 + i * d * 0.45f;
-            using var halo = new SolidBrush(Color.FromArgb(18, color));
+            var r = d / 2 + i * d * 0.28f;
+            using var halo = new SolidBrush(Color.FromArgb(26, color));
             g.FillEllipse(halo, cx - r, cy - r, 2 * r, 2 * r);
         }
         using var b = new SolidBrush(color);

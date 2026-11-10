@@ -38,7 +38,7 @@ jobs:
           $p = Start-Process -FilePath (Resolve-Path dist\PlunderCount.exe) -ArgumentList @('--demo', '--data', $data, '--overlay-preview', (Join-Path $out 'overlay.png')) -PassThru
           if (-not $p.WaitForExit(120000)) { $p.Kill() }
           $edge = 'C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe'
-          foreach ($page in @(@('report.html', 'report.png', '1280,2800'), @('overlay.html', 'obs.png', '460,300'))) {
+          foreach ($page in @(@('report.html', 'report.png', '1400,3200'), @('overlay.html', 'obs.png', '460,300'))) {
             $src = Join-Path $out $page[0]
             if (Test-Path $src) {
               $url = 'file:///' + ($src -replace '\\', '/')

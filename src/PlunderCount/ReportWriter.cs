@@ -116,151 +116,161 @@ public static class ReportWriter
 
     private static DateTime When(MatchRecord m) => (m.MatchStartUtc ?? m.AnalyzedAtUtc).ToLocalTime();
 
-    // Premium dark dashboard: near-black page with a faint aurora and grid, glass panels, one sand accent.
-    // Figures use Bahnschrift (installed with Windows), text uses Segoe UI Variable.
+    // Design v2 (2b): near-black editorial dashboard, Sora light figures, JetBrains Mono labels, Geist text, one gold accent.
     private const string Style = """
-        :root{--bg:#07080a;--ink:#e8e9ec;--ink2:#f4f5f7;--muted:#80858f;--faint:#4a4e56;--line:rgba(255,255,255,.07);--line2:rgba(255,255,255,.12);--glass:rgba(255,255,255,.028);--glass2:rgba(255,255,255,.05);--gold:#d6b77c;--gold2:#ecd3a0;--green:#8cc5a0;--star:#b6a2d9;--team:#8fb3c4;--warn:#e0897f;--warnbg:rgba(224,137,127,.07)}
+        :root{--bg:#050506;--panel:#09090a;--ink:#f2efe8;--ink2:#d9d6cf;--muted:#8f8d88;--dim:#6f6d69;--faint:#5a5955;--line:rgba(255,255,255,.07);--line2:rgba(255,255,255,.1);--gold:#e6c88f;--green:#8fd6a8;--violet:#cfc2f5;--warn:#e0897f}
         *{box-sizing:border-box}
         html{background:var(--bg)}
-        body{margin:0;color:var(--ink);font:14.5px/1.55 "Segoe UI Variable Text","Segoe UI",system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased;min-height:100vh}
-        .aurora{position:fixed;inset:0;pointer-events:none;z-index:0;background:radial-gradient(700px 420px at 12% -8%,rgba(214,183,124,.10),transparent 70%),radial-gradient(800px 500px at 92% 4%,rgba(120,140,170,.08),transparent 70%),radial-gradient(900px 600px at 50% 110%,rgba(182,162,217,.05),transparent 70%)}
-        .aurora:after{content:"";position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.018) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.018) 1px,transparent 1px);background-size:48px 48px;mask-image:radial-gradient(ellipse at 50% 0%,#000 30%,transparent 75%)}
-        main{position:relative;z-index:1;max-width:1160px;margin:0 auto;padding:28px 22px 72px;display:flex;flex-direction:column;gap:20px}
-        .num{font-family:Bahnschrift,"Segoe UI",sans-serif;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
-        .muted{color:var(--muted)}
-        .glass{background:linear-gradient(180deg,rgba(255,255,255,.045),rgba(255,255,255,.018));border:1px solid var(--line);border-radius:20px;box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 20px 50px -20px rgba(0,0,0,.6);backdrop-filter:blur(18px) saturate(120%)}
-        nav.top{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:4px 2px 8px}
-        .brand{display:flex;align-items:center;gap:12px}
-        .brand svg{width:36px;height:36px;filter:drop-shadow(0 6px 14px rgba(0,0,0,.5))}
-        .brand .name{font:600 18px "Segoe UI Variable Display","Segoe UI",sans-serif;letter-spacing:-.01em;color:var(--ink2)}
-        .chip{display:inline-flex;align-items:center;gap:8px;margin-left:6px;padding:4px 12px 4px 4px;border-radius:999px;background:var(--glass2);border:1px solid var(--line);font-size:13px;color:var(--ink)}
-        .chip .av{display:grid;place-items:center;width:22px;height:22px;border-radius:50%;font:700 11px "Segoe UI",sans-serif;font-style:normal;color:#1a1408;background:linear-gradient(135deg,var(--gold2),var(--gold))}
-        .sync{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--muted)}
-        .pulse{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 0 0 rgba(140,197,160,.5);animation:pulse 2.4s infinite}
-        @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(140,197,160,.45)}70%{box-shadow:0 0 0 8px rgba(140,197,160,0)}100%{box-shadow:0 0 0 0 rgba(140,197,160,0)}}
-        .hero{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:28px;padding:30px 32px;overflow:hidden;position:relative}
-        .hero:before{content:"";position:absolute;inset:-1px;border-radius:20px;pointer-events:none;background:linear-gradient(135deg,rgba(214,183,124,.35),transparent 35%,transparent 70%,rgba(214,183,124,.12));-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;padding:1px}
-        .eyebrow{font-size:11.5px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;color:var(--gold)}
-        .huge{font-size:92px;font-weight:600;line-height:1;margin:10px 0 18px;background:linear-gradient(180deg,#fff 20%,#c9ccd2);-webkit-background-clip:text;background-clip:text;color:transparent}
-        .hero-meta{display:flex;flex-wrap:wrap;gap:8px}
-        .tag{display:inline-flex;align-items:baseline;gap:6px;padding:6px 12px;border-radius:999px;background:var(--glass2);border:1px solid var(--line);font:600 14px Bahnschrift,"Segoe UI",sans-serif;color:var(--ink2)}
-        .tag em{font:500 12px "Segoe UI",sans-serif;font-style:normal;color:var(--muted)}
-        .tag.up{background:rgba(140,197,160,.09);border-color:rgba(140,197,160,.22);color:var(--green)}
-        .hero-chart{display:flex;flex-direction:column;justify-content:flex-end;min-height:170px}
-        .spark{width:100%;height:150px;display:block}
-        .spark-axis{display:flex;justify-content:space-between;font-size:11.5px;color:var(--faint);margin-top:6px}
-        .stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
-        .stat{background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.015));border:1px solid var(--line);border-radius:18px;padding:18px 20px;display:flex;flex-direction:column;gap:2px;box-shadow:inset 0 1px 0 rgba(255,255,255,.05);transition:border-color .2s,transform .2s}
-        .stat:hover{border-color:var(--line2);transform:translateY(-2px)}
-        .stat .ico{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;color:var(--gold);background:rgba(214,183,124,.08);border:1px solid rgba(214,183,124,.16);margin-bottom:12px}
-        .stat .v{font-size:34px;font-weight:600;line-height:1.05;color:var(--ink2)}
-        .stat .l{font-size:12.5px;color:var(--muted)}
-        .stat .s{font-size:12px;color:var(--faint);margin-top:6px}
-        .panel{padding:20px 22px}
-        .phead{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px}
-        h2{margin:0;font:600 15px "Segoe UI Variable Display","Segoe UI",sans-serif;color:var(--ink2);letter-spacing:0;display:flex;align-items:center;gap:10px}
-        h2 .count{font-size:12px;font-weight:600;padding:2px 9px;border-radius:999px;background:rgba(182,162,217,.12);color:var(--star)}
-        .bars{display:flex;align-items:stretch;gap:5px;height:170px;padding-top:30px}
-        .col{flex:1;min-width:5px;display:flex;align-items:flex-end;position:relative;cursor:default}
-        .bar{width:100%;border-radius:6px 6px 2px 2px;background:linear-gradient(180deg,rgba(242,243,245,.32),rgba(242,243,245,.08));transition:background .15s}
-        .bar.top{background:linear-gradient(180deg,var(--gold2),rgba(214,183,124,.25));box-shadow:0 0 24px -6px rgba(214,183,124,.55)}
-        .bar.zero{background:var(--line);height:3px!important;border-radius:2px}
-        .col.today .bar:not(.zero){background:linear-gradient(180deg,var(--green),rgba(140,197,160,.15))}
-        .col:hover .bar:not(.zero){background:linear-gradient(180deg,#fff,rgba(242,243,245,.2))}
-        .tip{position:absolute;left:50%;transform:translateX(-50%) translateY(4px);white-space:nowrap;background:#16181d;color:var(--ink2);border:1px solid var(--line2);padding:4px 9px;border-radius:8px;font-size:12px;font-weight:600;opacity:0;pointer-events:none;transition:.15s;z-index:3;box-shadow:0 8px 20px rgba(0,0,0,.4)}
-        .col:nth-child(-n+3) .tip{left:0;transform:translateY(4px)}
-        .col:nth-last-child(-n+3) .tip{left:auto;right:0;transform:translateY(4px)}
-        .col:hover .tip{opacity:1;transform:translateX(-50%) translateY(0)}
-        .col:nth-child(-n+3):hover .tip,.col:nth-last-child(-n+3):hover .tip{transform:translateY(0)}
-        .axis{display:flex;justify-content:space-between;gap:8px;color:var(--faint);font-size:12px;margin-top:10px;padding-top:10px;border-top:1px solid var(--line)}
-        .axis .best{color:var(--gold)}
-        .two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;align-items:start}
-        tr.more{display:none}
-        body.allt tr.more{display:table-row}
-        body.allt tr.more.team{display:none}
-        body.allt.showteam tr.more.team{display:table-row}
-        .showall{display:block;margin:14px auto 0;padding:8px 18px;border-radius:999px;border:1px solid var(--line2);background:var(--glass2);color:var(--ink);font:600 13px "Segoe UI",sans-serif;cursor:pointer;transition:.15s}
-        .showall:hover{border-color:rgba(214,183,124,.45);color:var(--ink2)}
-        .stack{display:flex;height:10px;border-radius:999px;overflow:hidden;gap:2px;margin:4px 0 16px}
-        .stack i{display:block;min-width:3px}
-        .kinds{display:flex;flex-direction:column}
-        .kind{display:grid;grid-template-columns:auto 1fr auto auto;align-items:center;gap:12px;padding:9px 2px;border-top:1px solid var(--line)}
-        .kind:first-child{border-top:none}
-        .kind .dot{width:9px;height:9px;border-radius:3px}
-        .kind .kn{color:var(--ink)}
-        .kind .kn small{color:var(--warn);font-size:11.5px;margin-left:6px}
-        .kind .kp{color:var(--faint);font-size:12.5px}
-        .kind .kv{font-size:17px;font-weight:600;color:var(--ink2);min-width:44px;text-align:right}
-        .kind.src{grid-template-columns:minmax(0,1.2fr) minmax(0,1fr) auto}
-        .kind.warnrow .kn{color:var(--warn)}
-        .meter{display:block;height:6px;background:var(--line);border-radius:999px;overflow:hidden}
-        .meter i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,rgba(182,162,217,.5),var(--star))}
-        .note{margin-top:14px;padding-top:12px;border-top:1px dashed var(--line2);font-size:12.5px;color:var(--muted)}
-        .empty{padding:28px 0;text-align:center;color:var(--muted)}
-        .flag{display:flex;gap:12px;align-items:flex-start;background:var(--warnbg);color:#ecc8c2;border:1px solid rgba(224,137,127,.28);border-radius:14px;padding:12px 14px;font-size:13.5px;margin-top:14px}
-        .tablewrap{overflow-x:auto;margin:0 -8px}
-        table{width:100%;border-collapse:separate;border-spacing:0;font-variant-numeric:tabular-nums}
-        th,td{text-align:left;padding:11px 10px;border-bottom:1px solid var(--line);vertical-align:middle}
-        th{white-space:nowrap;font-size:11px;text-transform:uppercase;letter-spacing:.14em;color:var(--faint);font-weight:600;border-bottom:1px solid var(--line2)}
-        tbody tr{transition:background .12s}
-        tbody tr:hover td{background:rgba(255,255,255,.025)}
-        tbody tr:last-child td{border-bottom:none}
+        body{margin:0;color:var(--ink);font:400 14px/1.5 "Geist","Segoe UI",system-ui,sans-serif;-webkit-font-smoothing:antialiased;padding:40px 24px}
+        main{max-width:1280px;margin:0 auto;padding:44px 56px 64px;border-radius:16px;border:1px solid rgba(255,255,255,.06);background:radial-gradient(70% 40% at 10% 0%,rgba(230,200,143,.07),transparent 70%),var(--panel)}
+        .mono{font-family:"JetBrains Mono",Consolas,monospace}
+        .dim{font-size:11px;letter-spacing:.1em;color:var(--dim)}
         .r{text-align:right}
-        td.nw,.nw{white-space:nowrap}
-        .items{color:var(--muted);font-size:13px}
-        .faint{color:var(--faint)}
-        .star{color:var(--star);font-weight:600}
-        .gold{color:var(--gold);font-weight:600}
-        .mode{display:inline-block;padding:3px 10px;border-radius:999px;background:var(--glass2);border:1px solid var(--line);font-size:12.5px;color:var(--ink)}
-        .win{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12.5px;font-weight:700;color:#1a1408;background:linear-gradient(135deg,var(--gold2),var(--gold));box-shadow:0 0 18px -4px rgba(214,183,124,.6)}
-        .cc{display:inline-flex;align-items:center;gap:12px;justify-content:flex-end}
-        .cc b{font-size:17px;font-weight:600;color:var(--ink2);min-width:26px;text-align:right}
-        .mini{display:block;width:72px;height:4px;border-radius:999px;background:var(--line);overflow:hidden}
-        .mini i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,rgba(214,183,124,.4),var(--gold))}
-        .you{color:var(--ink);font-weight:600}
+        .dia{display:inline-block;width:7px;height:7px;transform:rotate(45deg);border:1px solid var(--gold);flex:none}
+        .dia.glow{width:10px;height:10px;box-shadow:0 0 12px rgba(230,200,143,.4)}
+        header.top{display:flex;justify-content:space-between;align-items:center;gap:16px}
+        .brand{display:flex;align-items:center;gap:14px}
+        .brand .name{font:400 20px "Sora","Segoe UI",sans-serif;letter-spacing:-.01em}
+        .brand .who{font:400 11px "JetBrains Mono",monospace;letter-spacing:.14em;color:var(--dim)}
+        .sync{display:flex;align-items:center;gap:10px;font:400 11px "JetBrains Mono",monospace;letter-spacing:.06em;color:var(--dim)}
+        .gdot{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 10px var(--green);animation:breathe 2.6s ease-in-out infinite}
+        @keyframes breathe{50%{opacity:.45}}
+        .hero{display:grid;grid-template-columns:1.25fr 1fr;gap:64px;margin-top:56px;padding-bottom:40px;border-bottom:1px solid var(--line)}
+        .eyebrow{font:400 11px "JetBrains Mono",monospace;letter-spacing:.24em;color:var(--gold)}
+        .huge{margin-top:6px;font:200 200px/.85 "Sora","Segoe UI Light",sans-serif;letter-spacing:-.05em;font-variant-numeric:lining-nums tabular-nums;background:linear-gradient(180deg,#f7f2e6 30%,#b79a63);-webkit-background-clip:text;background-clip:text;color:transparent;white-space:nowrap}
+        .sub{margin-top:14px;font:300 15px "Sora",sans-serif;color:var(--muted)}
+        .krows{display:flex;flex-direction:column;justify-content:flex-end}
+        .krow{display:flex;justify-content:space-between;align-items:baseline;padding:14px 0;border-top:1px solid var(--line)}
+        .krow .k{font:400 11px "JetBrains Mono",monospace;letter-spacing:.18em;color:var(--muted)}
+        .krow .kx{color:var(--faint)}
+        .krow .kv{font:200 34px/1 "Sora",sans-serif;letter-spacing:-.03em}
+        .krow .kv.violet{color:var(--violet)}
+        .block{margin-top:40px}
+        .bhead{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+        h2{margin:0;font:300 22px "Sora","Segoe UI",sans-serif;letter-spacing:-.01em}
+        .chart{position:relative;margin-top:24px;height:200px;display:flex;align-items:flex-end;background:repeating-linear-gradient(0deg,rgba(255,255,255,.045) 0 1px,transparent 1px 50px)}
+        .col{flex:1;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;cursor:default}
+        .col i{display:block;width:10px;border-radius:10px;background:linear-gradient(180deg,rgba(242,239,232,.42),rgba(242,239,232,.12));transition:background .15s}
+        .col i.zero{background:rgba(255,255,255,.08)}
+        .col i.best{background:linear-gradient(180deg,#f5dfae,#a88a52);box-shadow:0 0 24px rgba(230,200,143,.45)}
+        .col .lab{font:400 10px "JetBrains Mono",monospace;color:var(--ink);margin-bottom:6px;min-height:15px;visibility:hidden}
+        .col.isbest .lab{visibility:visible;color:var(--gold)}
+        .chart.hovering .col.isbest .lab{visibility:hidden}
+        .chart .col.hov .lab{visibility:visible}
+        .col.hov i:not(.zero){background:var(--ink)}
+        .axis{display:flex;margin-top:12px;border-top:1px solid var(--line2);padding-top:10px}
+        .axis div{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px}
+        .axis .t{width:1px;height:3px;background:rgba(255,255,255,.25)}
+        .axis .t.major{height:6px}
+        .axis .al{font:400 9.5px "JetBrains Mono",monospace;letter-spacing:.06em;color:var(--dim);white-space:nowrap;min-height:13px}
+        .split{display:grid;grid-template-columns:1.5fr 1fr;gap:56px;margin-top:56px;align-items:start}
+        .split.even{grid-template-columns:1fr 1fr;margin-top:64px}
+        .stack{display:flex;gap:3px;height:10px;margin-top:20px}
+        .stack span{border-radius:2px;min-width:2px}
+        .types{margin-top:18px}
+        .trow{display:grid;grid-template-columns:1fr 60px 60px;align-items:baseline;gap:16px;padding:11px 0;border-top:1px solid rgba(255,255,255,.06)}
+        .trow .tn{display:flex;align-items:center;gap:12px;font-size:14px;color:var(--ink2)}
+        .trow .tp{text-align:right;font:400 11px "JetBrains Mono",monospace;color:var(--dim)}
+        .trow .tv{text-align:right;font:300 18px/1 "Sora",sans-serif}
+        .trow.extra{border-top:1px dashed var(--line2);font:400 11px "JetBrains Mono",monospace;letter-spacing:.06em;color:#5f5e5a;padding-top:12px}
+        .trow.extra+.trow.extra{border-top:none;padding-top:4px}
+        .trow.extra span:last-child{text-align:right}
+        .tcard{margin-top:20px;padding:28px;border-radius:14px;border:1px solid rgba(196,181,242,.2);background:radial-gradient(120% 120% at 100% 0%,rgba(196,181,242,.1),transparent 60%),#0d0d10}
+        .tcard+.tcard{margin-top:12px;padding:20px 28px}
+        .tc-top{display:flex;justify-content:space-between;align-items:baseline;font-size:14px;color:var(--ink2)}
+        .tc-n{font:200 56px/.9 "Sora",sans-serif;letter-spacing:-.04em;color:var(--violet)}
+        .tcard+.tcard .tc-n{font-size:36px}
+        .tc-bar{height:2px;margin-top:18px;border-radius:2px;background:linear-gradient(90deg,var(--violet),rgba(196,181,242,.2))}
+        .tc-cap{margin-top:12px;font:400 10.5px "JetBrains Mono",monospace;letter-spacing:.12em;color:#7d7a86}
+        .tc-empty{color:var(--dim);font-size:14px}
+        .tcard.warn{border-color:rgba(224,137,127,.3);background:#0f0c0c}
+        .tcard.warn .tc-n{color:var(--warn)}
+        .tcard.warn .tc-bar{background:linear-gradient(90deg,var(--warn),rgba(224,137,127,.15))}
+        .flag{display:flex;gap:12px;align-items:flex-start;margin-top:12px;padding:12px 14px;border-radius:12px;border:1px solid rgba(224,137,127,.28);background:rgba(224,137,127,.06);color:#ecc8c2;font-size:13px}
+        .grid{display:grid;gap:12px;align-items:center}
+        .tg{grid-template-columns:96px 1fr 52px 64px 44px}
+        .mg{grid-template-columns:96px 1fr 58px 44px 118px}
+        .ghead{margin-top:20px;padding-bottom:10px;font-size:9.5px;letter-spacing:.16em;color:var(--faint)}
+        .grow{padding:10px 0;border-top:1px solid rgba(255,255,255,.05);font-size:13.5px;transition:background .12s}
+        .mg.grow{padding:8px 0}
+        .grow:hover{background:rgba(255,255,255,.02)}
+        .grow .d{font-size:11px;color:var(--dim)}
+        .grow .tt{display:flex;align-items:center;gap:9px;color:var(--ink);min-width:0}
+        .sp{color:var(--violet);font-size:10px;flex:none}
+        .sp.gold{color:var(--gold)}
+        .grow .at{font-size:11.5px;color:#b5b2ab}
+        .grow .fr{color:#7d7b76;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+        .grow .mode{color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+        .grow .pl{font-size:11.5px;color:#9a978f;white-space:nowrap}
+        .grow .n{font:300 18px/1 "Sora",sans-serif}
+        .grow .mt{font-size:12.5px;color:var(--violet);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+        .win{justify-self:start;padding:2px 7px;border-radius:4px;border:1px solid rgba(230,200,143,.45);background:rgba(230,200,143,.1);font-size:10.5px;letter-spacing:.1em;color:var(--gold)}
         .warn{color:var(--warn)}
-        tr.unusual td{background:var(--warnbg)}
-        .teamtoggle{display:inline-flex;align-items:center;gap:10px;font-size:13px;color:var(--muted);cursor:pointer;user-select:none}
+        .grow.unusual{background:rgba(224,137,127,.05)}
+        .grow.more{display:none}
+        section.all .grow.more{display:grid}
+        .grow.team{display:none}
+        body.showteam .grow.team{display:grid;opacity:.7}
+        .more-btn{display:block;margin-top:14px;padding:8px 14px;border-radius:6px;border:1px solid var(--line2);background:transparent;color:var(--muted);font-size:10.5px;letter-spacing:.14em;cursor:pointer;transition:.15s}
+        .more-btn:hover{border-color:rgba(230,200,143,.45);color:var(--gold)}
+        .teamtoggle{display:inline-flex;align-items:center;gap:8px;margin-top:12px;font-size:10px;letter-spacing:.12em;color:var(--dim);cursor:pointer;user-select:none}
         .teamtoggle input{position:absolute;opacity:0;pointer-events:none}
-        .teamtoggle .sw{position:relative;width:34px;height:20px;border-radius:999px;background:var(--line2);transition:.2s}
-        .teamtoggle .sw:after{content:"";position:absolute;top:3px;left:3px;width:14px;height:14px;border-radius:50%;background:#cfd2d8;transition:.2s}
-        .teamtoggle input:checked+.sw{background:rgba(214,183,124,.55)}
-        .teamtoggle input:checked+.sw:after{left:17px;background:#fff}
-        .team{display:none}
-        body.showteam tr.team{display:table-row}
-        body.showteam span.team{display:inline}
-        tr.team td{opacity:.75}
-        .by{white-space:nowrap}
-        .by svg{vertical-align:-3px;margin-right:6px}
-        footer{display:flex;flex-direction:column;gap:6px;font-size:12.5px;color:var(--muted);padding:18px 4px 0;border-top:1px solid var(--line)}
-        footer .fine{color:var(--faint)}
-        .loading{display:flex;gap:16px;align-items:center;background:var(--glass);border:1px solid rgba(214,183,124,.25);border-radius:18px;padding:16px 18px}
-        .spin{width:26px;height:26px;flex:none;border:2px solid var(--line2);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite}
+        .teamtoggle .box{width:9px;height:9px;transform:rotate(45deg);border:1px solid var(--dim);transition:.15s}
+        .teamtoggle input:checked+.box{background:var(--gold);border-color:var(--gold)}
+        .empty{padding:22px 0;color:var(--dim);font-size:13.5px;border-top:1px solid rgba(255,255,255,.05)}
+        footer{display:flex;flex-direction:column;gap:6px;margin-top:64px;padding-top:18px;border-top:1px solid var(--line);font-size:10px;letter-spacing:.1em;color:#4a4946;line-height:1.7}
+        .loading{display:flex;gap:16px;align-items:center;margin-top:28px;padding:16px 18px;border-radius:12px;border:1px solid rgba(230,200,143,.25);background:rgba(230,200,143,.04)}
+        .loading .muted{color:var(--dim)}
+        .spin{width:22px;height:22px;flex:none;border:1px solid var(--line2);border-top-color:var(--gold);border-radius:50%;animation:spin .9s linear infinite}
         @keyframes spin{to{transform:rotate(360deg)}}
-        .loading .grow{flex:1;min-width:0}
-        .pbar{height:4px;background:var(--line);border-radius:999px;overflow:hidden;margin:8px 0 6px}
-        .pbar i{display:block;height:100%;background:linear-gradient(90deg,var(--gold),var(--gold2))}
-        .profiles{margin-top:-8px;font-size:13px}
-        @media (max-width:900px){.hero{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.two{grid-template-columns:1fr}.huge{font-size:72px}}
+        .loading .lgrow{flex:1;min-width:0}
+        .pbar{height:2px;background:var(--line2);border-radius:2px;overflow:hidden;margin:10px 0 8px}
+        .pbar i{display:block;height:100%;background:var(--gold)}
+        .profiles{margin-top:14px;font:400 11px "JetBrains Mono",monospace;letter-spacing:.06em;color:var(--dim)}
+        @media (max-width:1100px){main{padding:32px 28px 48px}.hero,.split,.split.even{grid-template-columns:1fr;gap:40px}.huge{font-size:140px}}
         @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
         """;
 
-    /// <summary>No web font: the page uses the fonts that come with Windows.</summary>
-    private const string FontFace = "";
+    /// <summary>@font-face rules for the embedded Sora, Geist and JetBrains Mono (SIL OFL): the page works offline.</summary>
+    private static readonly string FontFace = BuildFontFace();
 
-    /// <summary>Plunder Count mark: a geometric "P" on a dark tile, with a sand coin.</summary>
-    private const string LogoIcon = """<svg width="44" height="44" viewBox="0 0 64 64" aria-hidden="true"><rect x="2" y="2" width="60" height="60" rx="15" fill="#111318" stroke="#2a2d34" stroke-width="2"/><path d="M23 47V17h11a9.5 9.5 0 0 1 0 19H23" fill="none" stroke="#f1f2f4" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="43" cy="46" r="4.5" fill="#d6b77c"/></svg>""";
+    private static string BuildFontFace()
+    {
+        var sb = new StringBuilder();
+        foreach (var (family, file, weight) in new[]
+        {
+            ("Sora", "sora-200", 200), ("Sora", "sora-300", 300), ("Sora", "sora-400", 400),
+            ("Geist", "geist-sans-300", 300), ("Geist", "geist-sans-400", 400), ("Geist", "geist-sans-500", 500),
+            ("JetBrains Mono", "jetbrains-mono-400", 400), ("JetBrains Mono", "jetbrains-mono-500", 500), ("JetBrains Mono", "jetbrains-mono-700", 700),
+        })
+        {
+            try
+            {
+                using var s = typeof(ReportWriter).Assembly.GetManifestResourceStream($"Fonts.{file}.woff2");
+                if (s == null) continue;
+                using var ms = new MemoryStream();
+                s.CopyTo(ms);
+                sb.Append($"@font-face{{font-family:'{family}';font-weight:{weight};font-style:normal;font-display:swap;src:url(data:font/woff2;base64,{Convert.ToBase64String(ms.ToArray())}) format('woff2')}}");
+            }
+            catch
+            {
+                // the page falls back to Segoe UI / Consolas
+            }
+        }
+        return sb.ToString();
+    }
+
 
     private const string TeamIcon = """<svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.2" fill="none" stroke="#8fb3c4" stroke-width="2"/><path d="M3 20c0-3.5 2.7-6 6-6s6 2.5 6 6" fill="none" stroke="#8fb3c4" stroke-width="2"/><circle cx="17" cy="9" r="2.6" fill="none" stroke="#8fb3c4" stroke-width="2"/><path d="M16 14c3 0 5 2.2 5 5" fill="none" stroke="#8fb3c4" stroke-width="2"/></svg>""";
     private const string FlagIcon = """<svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" style="flex:none;margin-top:2px"><path d="M5 21V4M5 4h11l-2 4 2 4H5" fill="none" stroke="#e0897f" stroke-width="2" stroke-linejoin="round"/></svg>""";
 
     private static readonly Dictionary<string, string> KindColor = new()
     {
-        [ChestKinds.Normal] = "#d6b77c",
-        [ChestKinds.Rare] = "#7d93ad",
-        [ChestKinds.Buried] = "#a08a6a",
-        [ChestKinds.Extraction] = "#8fb3c4",
-        [ChestKinds.PosterChest] = "#b6a2d9",
+        [ChestKinds.Normal] = "#e6c88f",
+        [ChestKinds.Rare] = "#7f8fb8",
+        [ChestKinds.Buried] = "#a8875a",
+        [ChestKinds.Extraction] = "#8cc4e0",
+        [ChestKinds.PosterChest] = "#cfc2f5",
         [ChestKinds.Other] = "#6f747d",
     };
 
@@ -272,80 +282,69 @@ public static class ReportWriter
         var avg = matches.Count > 0 ? (double)totalChests / matches.Count : 0;
         var best = matches.Count > 0 ? matches.Max(m => m.ChestsOpened) : 0;
         var treasures = matches.Sum(m => m.TreasureFinds.Count);
-        var teamTreasures = matches.Sum(m => m.TeamTreasureFinds.Count);
-        var sessionMatches = matches.Where(IsThisSession).ToList();
-        var session = sessionMatches.Sum(m => m.ChestsOpened);
-        var last = matches.FirstOrDefault();
-        var wins = matches.Count(m => m.Placement == 1);
+        var session = matches.Where(IsThisSession).Sum(m => m.ChestsOpened);
         var player = matches.Select(m => m.PlayerName).FirstOrDefault(n => !string.IsNullOrEmpty(n)) ?? "";
         // Own treasures only: the team's are found with chests that are not counted here.
         var every = treasures > 0 ? (int)Math.Round((double)totalChests / treasures) : 0;
+        string N(int n) => n.ToString("N0", Fr);
+        string Up(string s) => s.ToUpperInvariant();
 
         var sb = new StringBuilder();
         var title = "Plunder Count";
-        var updated = DateTime.Now.ToString("HH:mm", Fr);
-        string N(int n) => n.ToString("N0", Fr);
-
-        string Stat(string icon, string value, string label, string? sub = null) =>
-            $"""<div class="stat"><div class="ico">{icon}</div><div class="v num">{value}</div><div class="l">{label}</div>{(sub != null ? $"<div class=\"s\">{sub}</div>" : "")}</div>""";
-
-        // Last 30 days, one value per day: hero sparkline + activity bars.
-        var today = DateTime.Now.Date;
-        var days = Enumerable.Range(0, 30).Select(i => today.AddDays(i - 29)).ToList();
-        var perDay = days.Select(d => matches.Where(m => When(m).Date == d).Sum(m => m.ChestsOpened)).ToList();
-        var max = Math.Max(1, perDay.Max());
-        var last7 = perDay.Skip(23).Sum();
-        var prev7 = perDay.Skip(16).Take(7).Sum();
+        var synced = $"SYNCED {DateTime.Now.ToString("HH:mm:ss", Fr)} · {Up(DateTime.Now.ToString("d MMM yyyy", Fr))}";
+        string Row(string label, string value, string? extra = null, string? cls = null) =>
+            $"""<div class="krow"><span class="k">{label}{(extra != null ? $" <span class=\"kx\">{extra}</span>" : "")}</span><span class="kv{(cls != null ? " " + cls : "")}">{value}</span></div>""";
 
         sb.Append($"""
             <!doctype html><html lang="{L.Code}"><head><meta charset="utf-8">
             <meta name="viewport" content="width=device-width,initial-scale=1">
             <meta http-equiv="refresh" content="{(progress != null ? 2 : 15)}">
-            <title>{title}</title><style>{FontFace}{Style}</style></head><body><div class="aurora"></div><main>
-            <nav class="top">
-              <div class="brand">{LogoIcon}<span class="name">{title}</span>{(player.Length > 0 ? $"<span class=\"chip\"><i class=\"av\">{H(player[..1].ToUpperInvariant())}</i>{H(player)}</span>" : "")}</div>
-              <div class="sync"><i class="pulse"></i>Live · updated {updated}</div>
-            </nav>
+            <title>{title}</title><style>{FontFace}{Style}</style></head><body><main>
+            <header class="top">
+              <div class="brand"><span class="dia glow"></span><span class="name">{title}</span>{(player.Length > 0 ? $"<span class=\"who\">/ {H(Up(player))}</span>" : "")}</div>
+              <div class="sync"><span class="gdot"></span>{synced}</div>
+            </header>
             {LoadingCard(progress)}{ProfilesLine(profiles, player)}
-            <section class="hero glass">
-              <div class="hero-main">
-                <div class="eyebrow">Total chests</div>
-                <div class="huge num">{N(totalChests)}</div>
-                <div class="hero-meta">
-                  <span class="tag{(session > 0 ? " up" : "")}">+{N(session)} <em>this session</em></span>
-                  {(last != null ? $"<span class=\"tag\">{N(last.ChestsOpened)} <em>last match</em></span>" : "")}
-                  <span class="tag">{N(last7)} <em>last 7 days{(prev7 > 0 ? $" · {(last7 >= prev7 ? "▲" : "▼")} {Math.Abs(last7 - prev7)}" : "")}</em></span>
-                </div>
+            <section class="hero">
+              <div>
+                <div class="eyebrow">CHESTS IN TOTAL</div>
+                <div class="huge">{N(totalChests)}</div>
+                <div class="sub">opened or destroyed by you · {N(session)} since the tool started</div>
               </div>
-              <div class="hero-chart">{Sparkline(perDay)}<div class="spark-axis"><span>{days[0].ToString("d MMM", Fr)}</span><span>today</span></div></div>
-            </section>
-            <section class="stats">
-              {Stat(IconMatches, N(matches.Count), "Matches", wins > 0 ? $"{L.Count(wins, "Victory Royale", "Victory Royales")}" : null)}
-              {Stat(IconAvg, avg.ToString("0.0", Fr), "Chests per match")}
-              {Stat(IconBest, N(best), "Best match")}
-              {Stat(IconStar, N(treasures), "Treasures",
-                  (every > 0 ? $"1 every {N(every)} chests" : null)
-                  + (teamTreasures > 0 ? (every > 0 ? " · " : "") + $"+{teamTreasures} team" : ""))}
+              <div class="krows">
+                {Row("MATCHES ANALYZED", N(matches.Count))}
+                {Row("CHESTS PER MATCH", avg.ToString("0.0", Fr))}
+                {Row("BEST MATCH", N(best))}
+                {Row("TREASURES FOUND", "✦ " + N(treasures), every > 0 ? $"· 1 PER {N(every)}" : null, "violet")}
+              </div>
             </section>
             """);
 
-        // Activity: one bar per day, best day highlighted.
-        sb.Append($"<section class=\"glass panel\"><div class=\"phead\"><h2>Activity</h2><span class=\"muted\">last 30 days</span></div><div class=\"bars\">");
+        // Chests per day: 30 pill bars, best day in gold, hover shows the day in the readout.
+        var today = DateTime.Now.Date;
+        var days = Enumerable.Range(0, 30).Select(i => today.AddDays(i - 29)).ToList();
+        var perDay = days.Select(d => matches.Where(m => When(m).Date == d).Sum(m => m.ChestsOpened)).ToList();
+        var max = Math.Max(1, perDay.Max());
+        var bestIdx = perDay.IndexOf(perDay.Max());
+        string DayLabel(int i) => i == 29 ? "TODAY" : Up(days[i].ToString("d MMM", Fr));
+        var readout = perDay[bestIdx] > 0 ? $"BEST DAY · {DayLabel(bestIdx)} · {N(perDay[bestIdx])} CHESTS" : "NO CHESTS YET";
+        sb.Append($"""<section class="block"><div class="bhead"><h2>Chests per day</h2><div class="mono dim" id="readout" data-default="{H(readout)}">{H(readout)}</div></div><div class="chart" id="chart">""");
         for (var i = 0; i < days.Count; i++)
         {
             var v = perDay[i];
-            var h = (int)Math.Round(100.0 * v / max);
-            var tip = $"{days[i].ToString("ddd d MMM", Fr)} · {L.Count(v, "chest")}";
-            var cls = v == 0 ? " zero" : v == max ? " top" : "";
-            sb.Append($"<div class=\"col{(days[i] == today ? " today" : "")}\" aria-label=\"{H(tip)}\"><span class=\"tip\" style=\"bottom:calc({Math.Max(h, 3)}% + 8px)\">{H(tip)}</span><div class=\"bar{cls}\" style=\"height:{h}%\"></div></div>");
+            var px = v > 0 ? Math.Max(4, (int)Math.Round(170.0 * v / max)) : 4;
+            var cls = v == 0 ? "zero" : i == bestIdx ? "best" : "";
+            sb.Append($"""<div class="col{(i == bestIdx && v > 0 ? " isbest" : "")}" data-r="{H(DayLabel(i))} · {N(v)} CHESTS"><span class="lab">{(v > 0 ? N(v) : "")}</span><i class="{cls}" style="height:{px}px"></i></div>""");
         }
-        var bestDay = perDay.Max();
-        var bestDate = days[perDay.IndexOf(bestDay)];
-        sb.Append($"</div><div class=\"axis\"><span>{days[0].ToString("d MMM", Fr)}</span>"
-            + (bestDay > 0 ? $"<span class=\"best\">Best day · {bestDate.ToString("d MMM", Fr)} · {L.Count(bestDay, "chest")}</span>" : "")
-            + $"<span>Today</span></div></section>");
+        sb.Append("</div><div class=\"axis\">");
+        for (var i = 0; i < days.Count; i++)
+        {
+            var major = i % 7 == 0 || i == 29;
+            sb.Append($"""<div><span class="t{(major ? " major" : "")}"></span><span class="al">{(major ? DayLabel(i) : "")}</span></div>""");
+        }
+        sb.Append("</div></section>");
 
-        // Chest types | where the player's treasures come from.
+        // By chest type | treasure sources.
         var byKind = matches.SelectMany(m => m.Chests).GroupBy(c => ChestKinds.Canonical(c.Kind)).OrderByDescending(g => g.Count()).ToList();
         var kindTotal = Math.Max(1, byKind.Sum(g => g.Count()));
         var otherKinds = matches
@@ -357,156 +356,113 @@ public static class ReportWriter
             .Where(x => x.Count > 0)
             .OrderByDescending(x => x.Count)
             .ToList();
-        sb.Append("<div class=\"two\"><section class=\"glass panel\"><div class=\"phead\"><h2>Chest types</h2></div>");
-        // Stacked bar of the whole mix, then one row per kind.
-        sb.Append("<div class=\"stack\">");
+        sb.Append($"""<div class="split"><section><div class="bhead"><h2>By chest type</h2><div class="mono dim">{N(kindTotal == 1 && byKind.Count == 0 ? 0 : kindTotal)}</div></div><div class="stack">""");
+        foreach (var g in byKind)
+        {
+            sb.Append($"""<span style="flex-grow:{g.Count()};background:{KindColor.GetValueOrDefault(g.Key, "#6f747d")}" title="{H(L.Name(g.Key))}"></span>""");
+        }
+        sb.Append("</div><div class=\"types\">");
         foreach (var g in byKind)
         {
             var color = KindColor.GetValueOrDefault(g.Key, "#6f747d");
-            sb.Append($"<i style=\"flex:{g.Count()};background:{color}\" title=\"{H(L.Name(g.Key))}\"></i>");
+            sb.Append($"""<div class="trow"><span class="tn"><span class="dia" style="background:{color};border-color:{color}"></span>{H(L.Name(g.Key))}</span><span class="tp">{Math.Round(100.0 * g.Count() / kindTotal)}%</span><span class="tv">{N(g.Count())}</span></div>""");
         }
-        sb.Append("</div><div class=\"kinds\">");
-        foreach (var g in byKind)
-        {
-            var color = KindColor.GetValueOrDefault(g.Key, "#6f747d");
-            var pct = 100.0 * g.Count() / kindTotal;
-            sb.Append($"<div class=\"kind\"><span class=\"dot\" style=\"background:{color}\"></span><span class=\"kn\">{H(L.Name(g.Key))}</span><span class=\"kp\">{pct.ToString(pct < 10 ? "0.0" : "0", Fr)}%</span><span class=\"kv num\">{N(g.Count())}</span></div>");
-        }
-        sb.Append("</div>");
         var destroyedTotal = matches.Sum(m => m.Chests.Count(c => c.Destroyed));
-        var extras = new List<string>();
         if (destroyedTotal > 0)
         {
-            extras.Add($"{N(destroyedTotal)} destroyed instead of opened");
+            sb.Append($"""<div class="trow extra"><span>OF WHICH DESTROYED</span><span></span><span>{N(destroyedTotal)}</span></div>""");
         }
         foreach (var (kind, count) in otherKinds)
         {
-            extras.Add($"{H(L.Name(kind))} {N(count)}");
+            sb.Append($"""<div class="trow extra"><span>{H(Up(L.Name(kind)))} · NOT IN TOTAL</span><span></span><span>{N(count)}</span></div>""");
         }
-        if (extras.Count > 0)
-        {
-            sb.Append($"<div class=\"note\">Not in the total · {string.Join(" · ", extras)}</div>");
-        }
-        sb.Append("</section>");
+        sb.Append("</div></section>");
 
         var treasureRows = matches.SelectMany(m => m.TreasureFinds.Select(f => (m, f, Team: false))).ToList();
         var teamRows = matches.SelectMany(m => m.TeamTreasureFinds.Select(f => (m, f, Team: true))).ToList();
-        sb.Append("<section class=\"glass panel\"><div class=\"phead\"><h2>Treasure sources</h2></div>");
+        sb.Append("<section><div class=\"bhead\"><h2>Treasure sources</h2></div>");
         if (treasureRows.Count == 0)
         {
-            sb.Append("<div class=\"empty\">No treasure yet. Keep looting.</div>");
+            sb.Append("<div class=\"tcard\"><div class=\"tc-empty\">No treasure yet.</div></div>");
         }
-        else
+        foreach (var g in treasureRows.GroupBy(r => r.f.SourceLabel).OrderByDescending(g => g.Count()))
         {
-            var srcMax = treasureRows.GroupBy(r => r.f.SourceLabel).Max(g => g.Count());
-            sb.Append("<div class=\"kinds\">");
-            foreach (var g in treasureRows.GroupBy(r => r.f.SourceLabel).OrderByDescending(g => g.Count()))
-            {
-                var isChest = g.First().f.SourceIsChest;
-                var w = Math.Max(4, (int)Math.Round(100.0 * g.Count() / srcMax));
-                sb.Append($"<div class=\"kind src{(isChest ? "" : " warnrow")}\"><span class=\"kn\">{H(g.Key)}{(isChest ? "" : " <small>low reliability</small>")}</span><span class=\"meter\"><i style=\"width:{w}%\"></i></span><span class=\"kv num\">{g.Count()}</span></div>");
-            }
-            sb.Append("</div>");
+            var isChest = g.First().f.SourceIsChest;
+            var pct = Math.Round(100.0 * g.Count() / treasureRows.Count);
+            sb.Append($"""<div class="tcard{(isChest ? "" : " warn")}"><div class="tc-top"><span>{H(g.Key)}</span><span class="tc-n">{g.Count()}</span></div><div class="tc-bar" style="width:{Math.Max(4, pct)}%"></div><div class="tc-cap">{pct}% OF TREASURES{(isChest ? "" : " · LOW RELIABILITY")}</div></div>""");
         }
         var unusual = treasureRows.Where(r => !r.f.SourceIsChest).ToList();
         if (unusual.Count > 0)
         {
-            var count = L.Count(unusual.Count, "treasure", "treasures");
-            sb.Append($"<div class=\"flag\">{FlagIcon}<span><b>{count} obtained other than from a chest.</b> Low reliability: most likely a mistake in the way the replays are analyzed.</span></div>");
+            sb.Append($"<div class=\"flag\">{FlagIcon}<span><b>{L.Count(unusual.Count, "treasure", "treasures")} obtained other than from a chest.</b> Low reliability: most likely a mistake in the way the replays are analyzed.</span></div>");
         }
         sb.Append("</section></div>");
 
-        // Treasures: the player's own, then (hidden unless asked) those found by teammates, shared with the whole team.
-        if (treasureRows.Count > 0 || teamRows.Count > 0)
+        // Treasures found | latest matches.
+        sb.Append("<div class=\"split even\"><section>");
+        sb.Append($"""<div class="bhead"><h2>Treasures found</h2><div class="mono dim">{treasures}</div></div>""");
+        if (teamRows.Count > 0)
         {
-            sb.Append($"<section class=\"glass panel\"><div class=\"phead\"><h2>Treasures <span class=\"count num\">{treasures}</span></h2>");
-            if (teamRows.Count > 0)
-            {
-                sb.Append($"<label class=\"teamtoggle\"><input type=\"checkbox\" id=\"showteam\"><span class=\"sw\"></span>Show team finds (+{teamRows.Count}, estimate)</label>");
-            }
-            sb.Append("</div><div class=\"tablewrap\"><table><thead><tr><th>Match</th><th>Treasure</th><th>Obtained</th><th>Source</th><th>By</th></tr></thead><tbody>");
-            var rowIndex = 0;
-            foreach (var (m, f, team) in treasureRows.Concat(teamRows).OrderByDescending(r => When(r.m)).ThenBy(r => r.f.ObtainedAtSeconds ?? 0))
-            {
-                var more = !team && rowIndex++ >= 10; // the 10 latest, the rest behind "Show all"
-                var when = f.ObtainedAtSeconds is float t ? (f.TimeExact ? Pretty.Clock(t) : $"~{Pretty.Clock(t)}") : "?";
-                string source;
-                if (team && string.IsNullOrEmpty(f.Teammate))
-                {
-                    source = "<span class=\"items\">out of your sight</span>";
-                }
-                else if (!f.SourceIsChest)
-                {
-                    source = $"<span class=\"warn\">{H(f.SourceLabel)} · low reliability</span>";
-                }
-                else
-                {
-                    source = H(f.SourceLabel) + (f.SourceCertain ? "" : $" <span class=\"items\">({Pretty.Likely})</span>");
-                }
-                var who = !team ? "<span class=\"you\">You</span>"
-                    : TeamIcon + (string.IsNullOrEmpty(f.Teammate) ? "a teammate" : H(f.Teammate));
-                var cls = (team ? "team" : f.SourceIsChest ? "" : "unusual") + (more ? " more" : "");
-                var stars = f.FromGoldenChest ? "<span class=\"gold\">★★</span>" : "<span class=\"star\">★</span>";
-                sb.Append($"<tr{(cls.Trim().Length > 0 ? $" class=\"{cls.Trim()}\"" : "")}><td class=\"nw items\">{L.DateTimeShort(When(m))}</td><td>{stars} <b>{H(f.DisplayName)}</b></td><td class=\"nw num\">{when}</td><td>{source}</td><td class=\"by\">{who}</td></tr>");
-            }
-            sb.Append("</tbody></table></div>");
-            if (treasureRows.Count > 10)
-            {
-                sb.Append($"<button class=\"showall\" id=\"showall\" type=\"button\">Show all {treasureRows.Count} treasures</button>");
-            }
-            sb.Append("</section>");
+            sb.Append($"""<label class="teamtoggle mono"><input type="checkbox" id="showteam"><span class="box"></span>SHOW TEAM FINDS · +{teamRows.Count} ESTIMATE</label>""");
         }
+        sb.Append("<div class=\"grid tg ghead mono\"><span>MATCH</span><span>TREASURE</span><span class=\"r\">AT</span><span>FROM</span><span>BY</span></div>");
+        if (treasureRows.Count == 0 && teamRows.Count == 0)
+        {
+            sb.Append("<div class=\"empty\">Your treasures will show up here.</div>");
+        }
+        var ti = 0;
+        foreach (var (m, f, team) in treasureRows.Concat(teamRows).OrderByDescending(r => When(r.m)).ThenBy(r => r.f.ObtainedAtSeconds ?? 0))
+        {
+            var more = !team && ti++ >= 15;
+            var at = f.ObtainedAtSeconds is float t ? (f.TimeExact ? Pretty.Clock(t) : $"~{Pretty.Clock(t)}") : "?";
+            var from = team && string.IsNullOrEmpty(f.Teammate) ? "?" : !f.SourceIsChest ? $"<span class=\"warn\" title=\"low reliability\">{H(f.SourceLabel)}</span>" : H(L.Name(f.SourceKind) is { Length: > 0 } k ? k : f.SourceLabel);
+            var by = !team ? "you" : (string.IsNullOrEmpty(f.Teammate) ? "team" : H(f.Teammate));
+            var glyph = f.FromGoldenChest ? "<span class=\"sp gold\">✦✦</span>" : "<span class=\"sp\">✦</span>";
+            var cls = (team ? " team" : "") + (more ? " more" : "") + (!f.SourceIsChest ? " unusual" : "");
+            sb.Append($"""<div class="grid tg grow{cls}"><span class="d mono">{Up(L.DateTimeShort(When(m)))}</span><span class="tt">{glyph}{H(f.DisplayName)}</span><span class="r at mono">{at}</span><span class="fr">{from}</span><span class="fr">{by}</span></div>""");
+        }
+        if (treasureRows.Count > 15)
+        {
+            sb.Append($"""<button class="more-btn mono" data-target="t" type="button">SHOW ALL {treasureRows.Count}</button>""");
+        }
+        sb.Append("</section><section>");
 
-        // Latest matches.
-        sb.Append("<section class=\"glass panel\"><div class=\"phead\"><h2>Latest matches</h2><span class=\"muted\">" + L.Count(Math.Min(100, matches.Count), "match", "matches") + "</span></div>");
-        sb.Append("<div class=\"tablewrap\"><table><thead><tr><th>Date</th><th>Mode</th><th>Placement</th><th class=\"r\">Chests</th><th>Treasure</th></tr></thead><tbody>");
-        var bestMatch = Math.Max(1, best);
+        var shown = Math.Min(15, matches.Count);
+        sb.Append($"""<div class="bhead"><h2>Latest matches</h2><div class="mono dim" id="mcount">{shown} / {N(matches.Count)}</div></div>""");
+        sb.Append("<div class=\"grid mg ghead mono\"><span>DATE</span><span>MODE</span><span>PLACE</span><span class=\"r\">CHESTS</span><span>TREASURE</span></div>");
+        if (matches.Count == 0)
+        {
+            sb.Append("<div class=\"empty\">Play a match with replays on: it shows up here a few seconds after it ends.</div>");
+        }
+        var mi = 0;
         foreach (var m in matches.Take(100))
         {
-            var treasure = string.Join("<br>", m.TreasureFinds.Select(f => $"<span class=\"{(f.FromGoldenChest ? "gold" : "star")}\">{(f.FromGoldenChest ? "★★" : "★")} {H(f.DisplayName)}</span>"))
-                + string.Concat(m.TeamTreasureFinds.Select((f, i) => $"<span class=\"team\">{(i == 0 && m.TreasureFinds.Count == 0 ? "" : "<br>")}{TeamIcon} ★ {H(f.DisplayName)}</span>"));
-            var win = m.Placement == 1;
-            var place = win ? "<span class=\"win\">#1 Victory</span>" : $"<span class=\"num\">{H(Pretty.Placement(m))}</span>";
-            var w = (int)Math.Round(100.0 * m.ChestsOpened / bestMatch);
-            sb.Append($"<tr><td class=\"nw items\">{L.DateTimeShort(When(m))}</td><td><span class=\"mode\">{H(Pretty.Playlist(m.Playlist))}</span></td><td class=\"nw\">{place}</td><td class=\"r\"><span class=\"cc\"><span class=\"mini\"><i style=\"width:{w}%\"></i></span><b class=\"num\">{m.ChestsOpened}</b></span></td><td class=\"items\">{(treasure.Length > 0 ? treasure : "<span class=\"faint\">·</span>")}</td></tr>");
+            var more = mi++ >= 15;
+            var place = m.Placement == 1
+                ? "<span class=\"win mono\">WIN</span>"
+                : m.Placement is int p && p > 0 ? $"<span class=\"pl mono\">{p} /{(m.TotalPlayers is int tp && tp > 0 ? tp : 100)}</span>" : "<span class=\"pl mono\">?</span>";
+            var tr = string.Join(", ", m.TreasureFinds.Select(f => H(f.DisplayName)));
+            sb.Append($"""<div class="grid mg grow{(more ? " more" : "")}"><span class="d mono">{Up(L.DateTimeShort(When(m)))}</span><span class="mode">{H(Pretty.Playlist(m.Playlist))}</span>{place}<span class="r n">{m.ChestsOpened}</span><span class="mt">{(tr.Length > 0 ? "✦ " + tr : "")}</span></div>""");
         }
-        sb.Append("</tbody></table></div></section>");
+        if (matches.Count > 15)
+        {
+            sb.Append($"""<button class="more-btn mono" data-target="m" data-all="{Math.Min(100, matches.Count)} / {N(matches.Count)}" type="button">SHOW {Math.Min(100, matches.Count)} MATCHES</button>""");
+        }
+        sb.Append("</section></div>");
 
         var script = """<script>(function(){var k='plundercount-showteam',b=document.getElementById('showteam');var on=false;try{on=localStorage.getItem(k)==='1'}catch(e){}function set(v){document.body.classList.toggle('showteam',v);if(b)b.checked=v}set(on);if(b)b.addEventListener('change',function(){set(b.checked);try{localStorage.setItem(k,b.checked?'1':'0')}catch(e){}})})();</script>""";
-        sb.Append("<footer><div>Counts the chests you opened or destroyed yourself, read from your replays after each match. Ammo and food boxes are not counted. ★★ golden treasure hunt chest (certain) · ★ treasure from one of your own chests.</div><div class=\"fine\">Plunder Count · not affiliated with Epic Games</div></footer>");
-        sb.Append(script).Append("""<script>(function(){var b=document.getElementById('showall');if(b)b.addEventListener('click',function(){document.body.classList.add('allt');b.remove()})})();</script>""").Append("</main></body></html>");
+        var interactions = """
+            <script>(function(){
+            var c=document.getElementById('chart'),r=document.getElementById('readout');
+            if(c&&r){c.querySelectorAll('.col').forEach(function(col){col.addEventListener('mouseenter',function(){c.classList.add('hovering');c.querySelectorAll('.col.hov').forEach(function(x){x.classList.remove('hov')});col.classList.add('hov');r.textContent=col.getAttribute('data-r')})});
+            c.addEventListener('mouseleave',function(){c.classList.remove('hovering');c.querySelectorAll('.col.hov').forEach(function(x){x.classList.remove('hov')});r.textContent=r.getAttribute('data-default')})}
+            document.querySelectorAll('.more-btn').forEach(function(btn){btn.addEventListener('click',function(){var s=btn.closest('section');s.classList.add('all');var n=btn.getAttribute('data-all'),m=document.getElementById('mcount');if(n&&m)m.textContent=n;btn.remove()})});
+            })();</script>
+            """;
+        sb.Append("<footer class=\"mono\"><span>COUNTS THE CHESTS YOU OPENED OR DESTROYED, READ FROM YOUR REPLAYS AFTER EACH MATCH · AMMO AND FOOD BOXES NOT COUNTED · ✦✦ GOLDEN CHEST (CERTAIN) · ✦ FROM ONE OF YOUR CHESTS</span><span>PLUNDER COUNT · NOT AFFILIATED WITH EPIC GAMES</span></footer>");
+        sb.Append(script).Append(interactions).Append("</main></body></html>");
         return sb.ToString();
     }
-
-    /// <summary>Smooth area chart of the last 30 days (inline SVG, no script).</summary>
-    private static string Sparkline(IReadOnlyList<int> values)
-    {
-        const double W = 520, Hh = 150, Pad = 8;
-        var max = Math.Max(1, values.Max());
-        var pts = values.Select((v, i) => (X: Pad + i * (W - 2 * Pad) / Math.Max(1, values.Count - 1), Y: Hh - Pad - (Hh - 2 * Pad - 10) * v / max)).ToList();
-        string F(double d) => d.ToString("0.#", CultureInfo.InvariantCulture);
-        // Catmull-Rom to Bezier: a smooth line through every day.
-        var path = new StringBuilder($"M{F(pts[0].X)},{F(pts[0].Y)}");
-        for (var i = 0; i < pts.Count - 1; i++)
-        {
-            var p0 = pts[Math.Max(0, i - 1)];
-            var p1 = pts[i];
-            var p2 = pts[i + 1];
-            var p3 = pts[Math.Min(pts.Count - 1, i + 2)];
-            var c1 = (X: p1.X + (p2.X - p0.X) / 6, Y: p1.Y + (p2.Y - p0.Y) / 6);
-            var c2 = (X: p2.X - (p3.X - p1.X) / 6, Y: p2.Y - (p3.Y - p1.Y) / 6);
-            path.Append($" C{F(c1.X)},{F(Math.Min(Hh - Pad, c1.Y))} {F(c2.X)},{F(Math.Min(Hh - Pad, c2.Y))} {F(p2.X)},{F(p2.Y)}");
-        }
-        var line = path.ToString();
-        var area = line + $" L{F(pts[^1].X)},{F(Hh)} L{F(pts[0].X)},{F(Hh)} Z";
-        var lastPt = pts[^1];
-        return $"""<svg class="spark" viewBox="0 0 {F(W)} {F(Hh)}" preserveAspectRatio="none" aria-hidden="true"><defs><linearGradient id="sg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#d6b77c" stop-opacity=".32"/><stop offset="1" stop-color="#d6b77c" stop-opacity="0"/></linearGradient><linearGradient id="sl" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#d6b77c" stop-opacity=".35"/><stop offset="1" stop-color="#e9cf9c"/></linearGradient></defs><path d="{area}" fill="url(#sg)"/><path d="{line}" fill="none" stroke="url(#sl)" stroke-width="2.4" stroke-linecap="round" vector-effect="non-scaling-stroke"/><circle cx="{F(lastPt.X)}" cy="{F(lastPt.Y)}" r="4" fill="#f2e2bf" stroke="#0b0c0f" stroke-width="2" vector-effect="non-scaling-stroke"/></svg>""";
-    }
-
-    private const string IconMatches = """<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>""";
-    private const string IconAvg = """<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg>""";
-    private const string IconBest = """<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4z"/><path d="M17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/></svg>""";
-    private const string IconStar = """<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg>""";
 
     private static string LoadingCard(ScanProgress? p)
     {
@@ -515,7 +471,7 @@ public static class ReportWriter
             return "";
         }
         var pct = p.Total > 0 ? (int)Math.Round(100.0 * p.Done / p.Total) : 0;
-        return $"""<div class="loading"><div class="spin"></div><div class="grow"><b>Analyzing your replays… {p.Done} / {p.Total}</b><div class="pbar"><i style="width:{pct}%"></i></div><span class="muted">This page updates by itself: the numbers below grow as the replays are read.</span></div></div>""";
+        return $"""<div class="loading"><div class="spin"></div><div class="lgrow"><b>Analyzing your replays… {p.Done} / {p.Total}</b><div class="pbar"><i style="width:{pct}%"></i></div><span class="muted">This page updates by itself: the numbers below grow as the replays are read.</span></div></div>""";
     }
 
     private static string ProfilesLine(IReadOnlyList<Profile> profiles, string player)
@@ -544,38 +500,43 @@ public static class ReportWriter
 
     public static string Overlay(OverlayView v)
     {
-        var rows = new StringBuilder();
-        foreach (var r in v.Rows)
-        {
-            rows.Append($"<div class=\"row{(r.Treasure ? " t" : "")}\"><span>{H(r.Label)}</span><b>{H(r.Value)}{(r.Detail != null ? $" <small>{H(r.Detail)}</small>" : "")}</b></div>");
-        }
+        // Same card as the in-game overlay (design 2a), for an OBS browser source (transparent background).
+        var live = v.CurrentLive && v.Current is { } c && c != "…";
+        var (status, color, sec, secColor, secLabel) = live
+            ? ("LIVE", "#8fd6a8", v.Current!, "#8fd6a8", "THIS MATCH")
+            : v.CurrentLive
+                ? ("IN MATCH", "#e6c88f", "···", "#e6c88f", "IN PROGRESS")
+                : ("IDLE", "#8f8d88", v.Last ?? "—", "#f2efe8", "LAST");
+        var on = v.CurrentLive && !live ? 0 : (int)Math.Round(26.0 * Math.Clamp(v.TickValue, 0, Math.Max(1, v.Best)) / Math.Max(1, v.Best));
+        var tickOn = live ? "#8fd6a8" : "rgba(242,239,232,.5)";
+        var ticks = string.Concat(Enumerable.Range(0, 26).Select(i => $"<i style=\"background:{(i < on ? tickOn : "rgba(255,255,255,.08)")}\"></i>"));
         return $$"""
             <!doctype html><html lang="{{L.Code}}"><head><meta charset="utf-8"><meta http-equiv="refresh" content="10">
             <title>Plunder Count overlay</title>
-            <style>
-            html,body{margin:0;background:transparent;color:#e6e7ea;font:500 16px/1.3 "Segoe UI Variable","Segoe UI",system-ui,sans-serif}
-            .box{display:inline-block;min-width:260px;padding:14px 18px 12px;border-radius:12px;background:linear-gradient(180deg,rgba(24,26,31,.88),rgba(11,12,15,.86));border:1px solid rgba(255,255,255,.08);box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 8px 24px rgba(0,0,0,.35)}
-            .head{display:flex;justify-content:space-between;align-items:center;gap:16px;font:600 11px "Segoe UI",sans-serif;letter-spacing:.18em;color:#848891}
-            .head span:first-child{display:flex;align-items:center;gap:8px}.head span:first-child:before{content:"";width:3px;height:8px;background:#d6b77c;border-radius:1px}
-            .live{color:#8cc5a0}
-            .counters{display:flex;align-items:stretch;gap:18px;margin:8px 0 10px}
-            .counters>div{display:flex;flex-direction:column}
-            .sep{width:1px;background:rgba(255,255,255,.07);margin:8px 0 2px}
-            .big{font:600 40px/1.1 Bahnschrift,"Segoe UI",sans-serif;font-variant-numeric:tabular-nums}
-            .total{color:#f1f2f4}.cur{color:#8cc5a0}.none{color:#40434a}
-            .cap{font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:#686c75}
-            .rows{border-top:1px solid rgba(255,255,255,.07);padding-top:8px;display:grid;grid-template-columns:auto 1fr;gap:4px 12px}
-            .row{display:contents}.row span{font-size:13px;font-weight:600;color:#70747d}.row b{font-weight:500;color:#dee0e4}
-            .row.t b{color:#b6a2d9}.row small{font-size:11px;font-weight:600;color:#686c75}
-            </style></head><body><div class="box">
-            <div class="head"><span>PLUNDER COUNT</span>{{(v.Badge != null ? $"<span class=\"live\">{H(v.Badge)}</span>" : "")}}</div>
-            <div class="counters">
-              <div><span class="big total">{{H(v.Total)}}</span><span class="cap">total chests</span></div>
-              <div class="sep"></div>
-              <div><span class="big {{(v.Current == null ? "none" : v.CurrentLive ? "cur" : "")}}">{{H(v.Current ?? "—")}}</span><span class="cap">{{H(v.CurrentCaption)}}</span></div>
-            </div>
-            <div class="rows">{{rows}}</div>
-            </div></body></html>
+            <style>{{FontFace}}
+            html,body{margin:0;background:transparent}
+            .wrap{display:inline-block;margin:24px;padding:1px;border-radius:14px;background:linear-gradient(180deg,rgba(255,255,255,.12),rgba(255,255,255,.04));box-shadow:0 30px 60px -20px rgba(0,0,0,.7)}
+            .card{width:340px;box-sizing:border-box;border-radius:13px;padding:16px 20px 14px;background:linear-gradient(180deg,rgba(18,18,22,.84),rgba(10,10,12,.9));color:#f2efe8;font-family:"Geist","Segoe UI",sans-serif}
+            .mono{font-family:"JetBrains Mono",Consolas,monospace}
+            .head{display:flex;justify-content:space-between;align-items:center;font-size:9.5px;letter-spacing:.22em}
+            .head span{display:flex;align-items:center;gap:8px}
+            .dia{width:5px;height:5px;transform:rotate(45deg);border:1px solid #e6c88f}
+            .dot{width:5px;height:5px;border-radius:50%}
+            .main{display:flex;align-items:flex-end;justify-content:space-between;margin-top:10px}
+            .tot{font:200 72px/.9 "Sora",sans-serif;letter-spacing:-.05em;font-variant-numeric:lining-nums tabular-nums}
+            .unit{font:300 13px "Sora",sans-serif;color:#8f8d88;margin-left:8px}
+            .sec{text-align:right;padding-bottom:6px}
+            .sec b{display:block;font:200 30px/1 "Sora",sans-serif;letter-spacing:-.03em}
+            .sec span{display:block;margin-top:5px;font-size:9px;letter-spacing:.2em;color:#6f6d69}
+            .ticks{display:flex;gap:3px;margin-top:12px}.ticks i{flex:1;height:3px;border-radius:1px}
+            .foot{display:flex;justify-content:space-between;margin-top:12px;font-size:10.5px;letter-spacing:.08em;color:#8f8d88}
+            .foot b{font-weight:500;color:#f2efe8}.foot .v{color:#c4b5f2}
+            </style></head><body><div class="wrap"><div class="card">
+            <div class="head mono"><span style="color:#8f8d88"><span class="dia"></span>PLUNDER · COUNT</span><span style="color:{{color}}"><span class="dot" style="background:{{color}};box-shadow:0 0 10px {{color}}"></span>{{status}}</span></div>
+            <div class="main"><div><span class="tot">{{H(v.Total)}}</span><span class="unit">chests</span></div><div class="sec"><b style="color:{{secColor}}">{{H(sec)}}</b><span class="mono">{{secLabel}}</span></div></div>
+            <div class="ticks">{{ticks}}</div>
+            <div class="foot mono"><span>SESSION <b>{{H(v.Session)}}</b></span><span>LAST <b>{{H(v.Last ?? "—")}}</b></span><span>TREASURES <b class="v">✦ {{H(v.Treasures)}}</b></span></div>
+            </div></div></body></html>
             """;
     }
 
