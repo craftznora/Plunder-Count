@@ -256,23 +256,17 @@ public static class OverlayRenderer
 
         using (var path = Round(card, radius))
         {
-            using (var fill = new LinearGradientBrush(card, Color.FromArgb(226, 27, 29, 35), Color.FromArgb(236, 12, 13, 16), LinearGradientMode.Vertical))
+            using (var fill = new LinearGradientBrush(card, Color.FromArgb(242, 26, 28, 33), Color.FromArgb(248, 12, 13, 16), LinearGradientMode.Vertical))
             {
                 g.FillPath(fill, path);
             }
             // Sheen: light falling on the top of the glass.
             var sheenRect = new RectangleF(card.X, card.Y, card.Width, card.Height * 0.45f);
-            using (var sheen = new LinearGradientBrush(new RectangleF(sheenRect.X, sheenRect.Y - 1, sheenRect.Width, sheenRect.Height + 2), Color.FromArgb(16, 255, 255, 255), Color.FromArgb(0, 255, 255, 255), LinearGradientMode.Vertical))
+            using (var sheen = new LinearGradientBrush(new RectangleF(sheenRect.X, sheenRect.Y - 1, sheenRect.Width, sheenRect.Height + 2), Color.FromArgb(13, 255, 255, 255), Color.FromArgb(0, 255, 255, 255), LinearGradientMode.Vertical))
             {
                 var clip = g.Clip;
                 g.SetClip(path);
                 g.FillRectangle(sheen, sheenRect);
-                // Faint sand glow in the top left corner.
-                using var glowPath = new GraphicsPath();
-                var gr = new RectangleF(card.X - cardW * 0.25f, card.Y - cardH * 0.6f, cardW * 0.9f, cardH * 1.1f);
-                glowPath.AddEllipse(gr);
-                using var glow = new PathGradientBrush(glowPath) { CenterColor = Color.FromArgb(22, Sand), SurroundColors = new[] { Color.FromArgb(0, Sand) } };
-                g.FillEllipse(glow, gr);
                 g.Clip = clip;
             }
             // Edge: brighter on top, like a bevel.
@@ -343,7 +337,7 @@ public static class OverlayRenderer
                 g.FillPath(fill, p);
                 g.DrawPath(edge, p);
             }
-            Tracked(g, label, fChipLabel, Dim, r.X + 12 * s, r.Y + 9 * s, 1.3f * s);
+            Tracked(g, label, fChipLabel, Muted, r.X + 12 * s, r.Y + 9 * s, 1.3f * s);
             using var vb = new SolidBrush(color);
             g.DrawString(value, fChipValue, vb, r.X + 11 * s, r.Y + 21 * s, Typo);
         }
