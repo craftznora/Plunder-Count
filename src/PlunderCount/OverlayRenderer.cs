@@ -261,9 +261,10 @@ public static class OverlayRenderer
                 g.FillPath(fill, path);
             }
             // Sheen: light falling on the top of the glass.
-            var sheenRect = new RectangleF(card.X, card.Y, card.Width, card.Height * 0.45f);
-            using (var sheen = new LinearGradientBrush(new RectangleF(sheenRect.X, sheenRect.Y - 1, sheenRect.Width, sheenRect.Height + 2), Color.FromArgb(13, 255, 255, 255), Color.FromArgb(0, 255, 255, 255), LinearGradientMode.Vertical))
+            var sheenRect = new RectangleF(card.X, card.Y, card.Width, card.Height * 0.8f);
+            using (var sheen = new LinearGradientBrush(new RectangleF(sheenRect.X, sheenRect.Y - 1, sheenRect.Width, sheenRect.Height + 2), Color.FromArgb(11, 255, 255, 255), Color.FromArgb(0, 255, 255, 255), LinearGradientMode.Vertical))
             {
+                sheen.SetBlendTriangularShape(0f, 1f); // smooth fade, no visible edge
                 var clip = g.Clip;
                 g.SetClip(path);
                 g.FillRectangle(sheen, sheenRect);

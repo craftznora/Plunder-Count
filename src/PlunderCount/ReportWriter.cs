@@ -174,7 +174,13 @@ public static class ReportWriter
         .col:nth-child(-n+3):hover .tip,.col:nth-last-child(-n+3):hover .tip{transform:translateY(0)}
         .axis{display:flex;justify-content:space-between;gap:8px;color:var(--faint);font-size:12px;margin-top:10px;padding-top:10px;border-top:1px solid var(--line)}
         .axis .best{color:var(--gold)}
-        .two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
+        .two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;align-items:start}
+        tr.more{display:none}
+        body.allt tr.more{display:table-row}
+        body.allt tr.more.team{display:none}
+        body.allt.showteam tr.more.team{display:table-row}
+        .showall{display:block;margin:14px auto 0;padding:8px 18px;border-radius:999px;border:1px solid var(--line2);background:var(--glass2);color:var(--ink);font:600 13px "Segoe UI",sans-serif;cursor:pointer;transition:.15s}
+        .showall:hover{border-color:rgba(214,183,124,.45);color:var(--ink2)}
         .stack{display:flex;height:10px;border-radius:999px;overflow:hidden;gap:2px;margin:4px 0 16px}
         .stack i{display:block;min-width:3px}
         .kinds{display:flex;flex-direction:column}
@@ -306,7 +312,7 @@ public static class ReportWriter
                 <div class="eyebrow">Total chests</div>
                 <div class="huge num">{N(totalChests)}</div>
                 <div class="hero-meta">
-                  <span class="tag up">+{N(session)} <em>this session</em></span>
+                  <span class="tag{(session > 0 ? " up" : "")}">+{N(session)} <em>this session</em></span>
                   {(last != null ? $"<span class=\"tag\">{N(last.ChestsOpened)} <em>last match</em></span>" : "")}
                   <span class="tag">{N(last7)} <em>last 7 days{(prev7 > 0 ? $" · {(last7 >= prev7 ? "▲" : "▼")} {Math.Abs(last7 - prev7)}" : "")}</em></span>
                 </div>
@@ -419,8 +425,10 @@ public static class ReportWriter
                 sb.Append($"<label class=\"teamtoggle\"><input type=\"checkbox\" id=\"showteam\"><span class=\"sw\"></span>Show team finds (+{teamRows.Count}, estimate)</label>");
             }
             sb.Append("</div><div class=\"tablewrap\"><table><thead><tr><th>Match</th><th>Treasure</th><th>Obtained</th><th>Source</th><th>By</th></tr></thead><tbody>");
+            var rowIndex = 0;
             foreach (var (m, f, team) in treasureRows.Concat(teamRows).OrderByDescending(r => When(r.m)).ThenBy(r => r.f.ObtainedAtSeconds ?? 0))
             {
+                var more = !team && rowIndex++ >= 10; // the 10 latest, the rest behind "Show all"
                 var when = f.ObtainedAtSeconds is float t ? (f.TimeExact ? Pretty.Clock(t) : $"~{Pretty.Clock(t)}") : "?";
                 string source;
                 if (team && string.IsNullOrEmpty(f.Teammate))
@@ -437,11 +445,16 @@ public static class ReportWriter
                 }
                 var who = !team ? "<span class=\"you\">You</span>"
                     : TeamIcon + (string.IsNullOrEmpty(f.Teammate) ? "a teammate" : H(f.Teammate));
-                var cls = team ? "team" : f.SourceIsChest ? "" : "unusual";
+                var cls = (team ? "team" : f.SourceIsChest ? "" : "unusual") + (more ? " more" : "");
                 var stars = f.FromGoldenChest ? "<span class=\"gold\">★★</span>" : "<span class=\"star\">★</span>";
-                sb.Append($"<tr{(cls.Length > 0 ? $" class=\"{cls}\"" : "")}><td class=\"nw items\">{L.DateTimeShort(When(m))}</td><td>{stars} <b>{H(f.DisplayName)}</b></td><td class=\"nw num\">{when}</td><td>{source}</td><td class=\"by\">{who}</td></tr>");
+                sb.Append($"<tr{(cls.Trim().Length > 0 ? $" class=\"{cls.Trim()}\"" : "")}><td class=\"nw items\">{L.DateTimeShort(When(m))}</td><td>{stars} <b>{H(f.DisplayName)}</b></td><td class=\"nw num\">{when}</td><td>{source}</td><td class=\"by\">{who}</td></tr>");
             }
-            sb.Append("</tbody></table></div></section>");
+            sb.Append("</tbody></table></div>");
+            if (treasureRows.Count > 10)
+            {
+                sb.Append($"<button class=\"showall\" id=\"showall\" type=\"button\">Show all {treasureRows.Count} treasures</button>");
+            }
+            sb.Append("</section>");
         }
 
         // Latest matches.
@@ -461,7 +474,7 @@ public static class ReportWriter
 
         var script = """<script>(function(){var k='plundercount-showteam',b=document.getElementById('showteam');var on=false;try{on=localStorage.getItem(k)==='1'}catch(e){}function set(v){document.body.classList.toggle('showteam',v);if(b)b.checked=v}set(on);if(b)b.addEventListener('change',function(){set(b.checked);try{localStorage.setItem(k,b.checked?'1':'0')}catch(e){}})})();</script>""";
         sb.Append("<footer><div>Counts the chests you opened or destroyed yourself, read from your replays after each match. Ammo and food boxes are not counted. ★★ golden treasure hunt chest (certain) · ★ treasure from one of your own chests.</div><div class=\"fine\">Plunder Count · not affiliated with Epic Games</div></footer>");
-        sb.Append(script).Append("</main></body></html>");
+        sb.Append(script).Append("""<script>(function(){var b=document.getElementById('showall');if(b)b.addEventListener('click',function(){document.body.classList.add('allt');b.remove()})})();</script>""").Append("</main></body></html>");
         return sb.ToString();
     }
 

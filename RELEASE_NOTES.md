@@ -2,11 +2,10 @@
 
 > **Turn on replays in Fortnite first**: *Settings → Game → Replays → Record Replays: On*. Plunder Count only reads these replay files: no game modification, no access to the game's memory. Its only network access is the update check on GitHub (can be turned off).
 
-**What's new in 1.0.0**
-- **Plunder Count**: new name, new icon, English only
-- **Glass panel overlay** (default): dark see-through card, modern type, no neon
-- **Minimal overlay** redesigned: figures only with a slim accent bar
-- **New console colors** and a **new dark report** to match
-- Picks up your data from the original Chest Counter automatically
+**What's new in 1.1.0**
+- **New glass HUD**: real see-through glass with soft shadows and smooth corners, status pills (LIVE / IN MATCH) and stat chips
+- **New minimal HUD**: figures with a soft shadow instead of a hard outline
+- **New report**: dashboard with a 30-day trend, stat cards, activity chart, chest mix and cleaner match history
+- Treasures list shows the 10 latest, with "Show all"
 
 Windows may show *"Windows protected your PC"* (unsigned exe): *More info → Run anyway*.
