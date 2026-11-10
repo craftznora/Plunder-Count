@@ -104,7 +104,7 @@ public static class ConsoleUi
         }
         Frames.Invalidate();
         WriteLine();
-        Write($"  ◆  {title.ToUpperInvariant()}", ConsoleColor.Yellow);
+        Write($"  ♦  {Spaced(title)}", ConsoleColor.Yellow);
         if (step != null)
         {
             Write($"   {step}", ConsoleColor.DarkGray);

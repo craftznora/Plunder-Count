@@ -753,7 +753,7 @@ void Draw()
     var width = ConsoleUi.Width;
     var f = new Frame();
     f.Blank();
-    f.Add(new Seg($"  ◆  {appName.ToUpperInvariant()}", ConsoleColor.Yellow), new Seg($"  v{AppInfo.VersionText}", ConsoleColor.DarkGray));
+    f.Add(new Seg($"  ♦  {string.Join(" ", appName.ToUpperInvariant().ToCharArray())}", ConsoleColor.Yellow), new Seg($"  v{AppInfo.VersionText}", ConsoleColor.DarkGray));
     f.Add("  " + new string('─', Math.Min(width - 4, 76)), ConsoleColor.DarkGray);
 
     // Tabs.
@@ -761,7 +761,7 @@ void Draw()
     var tabLine = new List<Seg> { new("  ") };
     for (var i = 0; i < names.Length; i++)
     {
-        tabLine.Add(i == tab ? new Seg($" {names[i]} ", ConsoleColor.Black, ConsoleColor.Yellow) : new Seg($" {names[i]} ", ConsoleColor.Gray));
+        tabLine.Add(i == tab ? new Seg($" {names[i].ToUpperInvariant()} ", ConsoleColor.Black, ConsoleColor.Yellow) : new Seg($" {names[i].ToUpperInvariant()} ", ConsoleColor.DarkGray));
         tabLine.Add(new Seg("  "));
     }
     f.Add(tabLine.ToArray());
@@ -787,7 +787,7 @@ void Draw()
     }
 
     // What's new gets the room left once the menu, the footer and a few lines of activity are placed.
-    var noteRoom = height - 1 - f.Lines.Count - 7 - items.Count - footer.Count - 4;
+    var noteRoom = height - 1 - f.Lines.Count - 10 - items.Count - footer.Count - 4;
 
     switch (tab)
     {
@@ -799,7 +799,7 @@ void Draw()
     for (var i = 0; i < items.Count; i++)
     {
         f.Add(i == selection[tab]
-            ? new Seg($"  › {items[i].Label} ", ConsoleColor.Black, ConsoleColor.Yellow)
+            ? new Seg($"  ▌ {items[i].Label}", ConsoleColor.Yellow)
             : new Seg($"    {items[i].Label}", ConsoleColor.Gray));
     }
 
@@ -808,7 +808,7 @@ void Draw()
     if (tab == 0 && room >= 3)
     {
         f.Blank();
-        f.Add("  " + "Activity", ConsoleColor.DarkGray);
+        f.Add("  ACTIVITY", ConsoleColor.DarkGray);
         foreach (var line in log.Last(room - 2))
         {
             f.Add(new[] { new Seg("  ") }.Concat(line).ToArray());
@@ -831,51 +831,85 @@ void DrawHome(Frame f, int noteRoom)
     var matches = view.Matches;
     var profile = Profiles.Current(data, config);
     var profiles = Profiles.List(data);
-    var labelWidth = new[] { "Profile", "Status", "Last match" }.Max(x => x.Length) + 3;
-    void Row(string label, params Seg[] value) => f.Add(new[] { new Seg("  " + label.PadRight(labelWidth), ConsoleColor.DarkGray) }.Concat(value).ToArray());
-
-    Row("Profile", new Seg(profile?.Name ?? "created with your first match", ConsoleColor.White),
-        new Seg(profiles.Count >= 2 ? $"   ({profiles.Count} accounts on this PC)" : "", ConsoleColor.DarkGray));
-
-    // State: what the counter is doing right now.
+    // ---- Status line: what the counter is doing right now, then the profile.
+    Seg[] status;
     if (autoCloseAt is { } closeAt)
     {
-        var s = Math.Max(0, (int)Math.Ceiling((closeAt - DateTime.UtcNow).TotalSeconds));
-        Row("Status", new Seg($"Fortnite is closed: the counter closes in {s} s. Press any key to keep it open.", ConsoleColor.Yellow));
+        var left = Math.Max(0, (int)Math.Ceiling((closeAt - DateTime.UtcNow).TotalSeconds));
+        status = new[] { new Seg("  ● ", ConsoleColor.Yellow), new Seg($"FORTNITE IS CLOSED", ConsoleColor.Yellow), new Seg($"  ·  closing in {left} s, press any key to keep it open", ConsoleColor.Gray) };
     }
     else if (tracker.IsLive)
     {
         var live = tracker.LiveMatch;
-        Row("Status", new Seg("● " + "Match in progress", ConsoleColor.Red),
-            new Seg(live != null
-                ? $": {L.Count(live.ChestsOpened, "chest")} so far"
-                : ": its chests will be counted at the end", ConsoleColor.Gray));
+        status = live != null
+            ? new[] { new Seg("  ● ", ConsoleColor.Green), new Seg("LIVE", ConsoleColor.Green), new Seg($"  ·  {L.Count(live.ChestsOpened, "chest")} so far", ConsoleColor.Gray) }
+            : new[] { new Seg("  ● ", ConsoleColor.Yellow), new Seg("IN MATCH", ConsoleColor.Yellow), new Seg("  ·  its chests are counted when it ends", ConsoleColor.Gray) };
     }
     else if (tracker.IsFinishing || tracker.HasPending)
     {
-        Row("Status", new Seg("Match over: counting the chests…", ConsoleColor.Cyan));
+        status = new[] { new Seg("  ● ", ConsoleColor.Cyan), new Seg("MATCH OVER", ConsoleColor.Cyan), new Seg("  ·  counting the chests…", ConsoleColor.Gray) };
+    }
+    else if (Directory.Exists(config.DemosFolder))
+    {
+        status = new[] { new Seg("  ● ", ConsoleColor.Gray), new Seg("WAITING FOR A MATCH", ConsoleColor.Gray) };
     }
     else
     {
-        Row("Status", Directory.Exists(config.DemosFolder)
-            ? new Seg("Waiting for a match", ConsoleColor.Green)
-            : new Seg("Replays folder not found (see help)", ConsoleColor.DarkYellow));
+        status = new[] { new Seg("  ● ", ConsoleColor.Red), new Seg("REPLAYS FOLDER NOT FOUND", ConsoleColor.Red), new Seg("  ·  see Help", ConsoleColor.Gray) };
     }
+    f.Add(status.Concat(new[]
+    {
+        new Seg($"      {profile?.Name ?? "profile created with your first match"}", ConsoleColor.DarkGray),
+        new Seg(profiles.Count >= 2 ? $" ({profiles.Count} accounts on this PC)" : "", ConsoleColor.DarkGray),
+    }).ToArray());
+    f.Blank();
 
+    // ---- Four figures side by side: label, value, one or two lines of detail.
     var chests = matches.Sum(m => m.ChestsOpened);
     var treasures = matches.Sum(m => m.TreasureFinds.Count);
     var avg = matches.Count > 0 ? ((double)chests / matches.Count).ToString("F1", L.Culture) : "0";
-    Row("Total", new Seg(L.Count(chests, "chest"), ConsoleColor.Yellow),
-        new Seg($"  ·  {L.Count(matches.Count, "match", "matches")}  ·  {$"{avg} per match"}", ConsoleColor.Gray),
-        new Seg(treasures > 0 ? $"  ·  ★ {L.Count(treasures, "treasure")}" : "", ConsoleColor.Magenta),
-        new Seg(treasures > 0 ? $" (1 every {L.N((int)Math.Round((double)chests / treasures))} chests)" : "", ConsoleColor.DarkGray));
     var session = matches.Where(ReportWriter.IsThisSession).ToList();
-    Row("Session", new Seg(L.Count(session.Sum(m => m.ChestsOpened), "chest"), ConsoleColor.Yellow),
-        new Seg($"  ·  {L.Count(session.Count, "match", "matches")}", ConsoleColor.Gray));
-    if (matches.OrderByDescending(m => m.MatchStartUtc ?? m.AnalyzedAtUtc).FirstOrDefault() is { } last)
+    var last = matches.OrderByDescending(m => m.MatchStartUtc ?? m.AnalyzedAtUtc).FirstOrDefault();
+    var colW = Math.Clamp((ConsoleUi.Width - 4) / 4, 16, 24);
+    string Cell(string text) => text.Length >= colW ? text[..(colW - 2)] + "… " : text.PadRight(colW);
+    void Cols(ConsoleColor[] colors, params string[] cells) =>
+        f.Add(new[] { new Seg("  ") }.Concat(cells.Select((c, i) => new Seg(Cell(c), colors[i]))).ToArray());
+    var dim = new[] { ConsoleColor.DarkGray, ConsoleColor.DarkGray, ConsoleColor.DarkGray, ConsoleColor.DarkGray };
+
+    Cols(dim, "TOTAL CHESTS", "SESSION", "LAST MATCH", "TREASURES");
+    Cols(new[] { ConsoleColor.Yellow, ConsoleColor.White, ConsoleColor.White, ConsoleColor.Magenta },
+        L.N(chests), L.N(session.Sum(m => m.ChestsOpened)), last != null ? L.N(last.ChestsOpened) : "—", "★ " + L.N(treasures));
+    Cols(dim,
+        $"{L.Count(matches.Count, "match", "matches")} · {avg} avg",
+        L.Count(session.Count, "match", "matches"),
+        last != null ? Pretty.Playlist(last.Playlist) : "no match yet",
+        treasures > 0 ? $"1 every {L.N((int)Math.Round((double)chests / treasures))} chests" : "none yet");
+    Cols(dim, "", "", last != null ? Pretty.Placement(last) : "", "");
+    f.Blank();
+
+    // ---- Road to the next milestone, then the latest matches as a tiny chart (best in gold, newest in white).
+    var barW = Math.Clamp(ConsoleUi.Width - 40, 20, 48);
+    var next = Milestones.Next(chests);
+    var prev = Milestones.Previous(chests);
+    var filled = (int)Math.Round(barW * Math.Clamp((chests - prev) / (double)Math.Max(1, next - prev), 0, 1));
+    f.Add(new Seg("  NEXT  ", ConsoleColor.DarkGray), new Seg(L.N(next).PadRight(7), ConsoleColor.White),
+        new Seg(new string('═', filled), ConsoleColor.Yellow), new Seg(new string('─', barW - filled), ConsoleColor.DarkGray),
+        new Seg($"  {L.N(next - chests)} TO GO", ConsoleColor.Yellow));
+    var recent = matches.OrderBy(m => m.MatchStartUtc ?? m.AnalyzedAtUtc).Select(m => m.ChestsOpened).ToList();
+    recent = recent.TakeLast(Math.Min(barW, 32)).ToList();
+    if (recent.Count > 1)
     {
-        Row("Last match", new Seg(L.Count(last.ChestsOpened, "chest"), ConsoleColor.Yellow),
-            new Seg($"  ·  {L.DateTimeShort((last.MatchStartUtc ?? last.AnalyzedAtUtc).ToLocalTime())}  ·  {Pretty.Playlist(last.Playlist)}  ·  {Pretty.Placement(last)}", ConsoleColor.Gray));
+        const string blocks = "▁▂▃▄▅▆▇█";
+        var max = Math.Max(1, recent.Max());
+        var bestIndex = recent.LastIndexOf(recent.Max());
+        var segs = new List<Seg> { new("  LAST  ", ConsoleColor.DarkGray), new(recent.Count.ToString().PadRight(7), ConsoleColor.White) };
+        for (var i = 0; i < recent.Count; i++)
+        {
+            var level = Math.Clamp((int)Math.Round(7.0 * recent[i] / max), 0, 7);
+            segs.Add(new Seg(blocks[level].ToString(), i == recent.Count - 1 ? ConsoleColor.White : i == bestIndex ? ConsoleColor.Yellow : ConsoleColor.Gray));
+        }
+        segs.Add(new Seg($"  best {max}", ConsoleColor.DarkGray));
+        f.Add(segs.ToArray());
     }
     f.Blank();
 
