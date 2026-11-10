@@ -31,25 +31,25 @@ public static class NativeConsole
         }
     }
 
-    // Plunder Count palette: near-black glass with muted, non-neon accents. Indexed by ConsoleColor.
+    // Plunder Count palette (design 2c): near-black, warm ink, gold accent, green / violet states. Indexed by ConsoleColor.
     private static readonly (byte R, byte G, byte B)[] Theme =
     {
-        (11, 12, 15),    // Black       (window background)
-        (26, 29, 36),    // DarkBlue
-        (78, 122, 94),   // DarkGreen
-        (79, 99, 114),   // DarkCyan
-        (138, 74, 68),   // DarkRed
-        (107, 90, 134),  // DarkMagenta
-        (156, 131, 85),  // DarkYellow
-        (180, 184, 192), // Gray        (normal text)
-        (91, 96, 105),   // DarkGray    (secondary text)
-        (125, 147, 173), // Blue
-        (140, 197, 160), // Green       (live / success)
-        (157, 178, 198), // Cyan
-        (217, 119, 111), // Red
-        (182, 162, 217), // Magenta     (treasures)
-        (214, 183, 124), // Yellow      (accent)
-        (241, 242, 244), // White       (figures)
+        (10, 10, 11),    // Black       (window background, #0a0a0b)
+        (26, 26, 29),    // DarkBlue
+        (90, 140, 108),  // DarkGreen
+        (90, 104, 116),  // DarkCyan
+        (140, 78, 72),   // DarkRed
+        (120, 108, 150), // DarkMagenta
+        (168, 138, 82),  // DarkYellow  (#a88a52)
+        (207, 204, 197), // Gray        (normal text, #cfccc5)
+        (95, 94, 90),    // DarkGray    (secondary text, #5f5e5a)
+        (127, 143, 184), // Blue
+        (143, 214, 168), // Green       (live / +1, #8fd6a8)
+        (140, 196, 224), // Cyan
+        (224, 137, 127), // Red
+        (207, 194, 245), // Magenta     (treasures, #cfc2f5)
+        (230, 200, 143), // Yellow      (accent, #e6c88f)
+        (242, 239, 232), // White       (figures, #f2efe8)
     };
 
     // ANSI palette slot of each ConsoleColor (Windows Terminal reads the ANSI slots).
@@ -82,7 +82,7 @@ public static class NativeConsole
                     var c = Theme[i];
                     sb.Append($"\u001b]4;{AnsiSlot[i]};rgb:{c.R:x2}/{c.G:x2}/{c.B:x2}\u001b\\");
                 }
-                sb.Append("\u001b]10;rgb:b4/b8/c0\u001b\\\u001b]11;rgb:0b/0c/0f\u001b\\"); // default text / background
+                sb.Append("\u001b]10;rgb:cf/cc/c5\u001b\\\u001b]11;rgb:0a/0a/0b\u001b\\"); // default text / background
                 using var stdout = Console.OpenStandardOutput();
                 var bytes = System.Text.Encoding.ASCII.GetBytes(sb.ToString());
                 stdout.Write(bytes, 0, bytes.Length);

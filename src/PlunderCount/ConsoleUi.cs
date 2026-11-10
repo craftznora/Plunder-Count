@@ -104,14 +104,13 @@ public static class ConsoleUi
         }
         Frames.Invalidate();
         WriteLine();
-        Write("  ▌ ", ConsoleColor.Yellow);
-        Write(Spaced(title), ConsoleColor.White);
+        Write($"  ◆  {title.ToUpperInvariant()}", ConsoleColor.Yellow);
         if (step != null)
         {
             Write($"   {step}", ConsoleColor.DarkGray);
         }
         WriteLine();
-        WriteLine("  " + new string('─', Math.Min(Width - 4, 72)), ConsoleColor.DarkGray);
+        WriteLine("  " + new string('─', Math.Min(Width - 4, 60)), ConsoleColor.DarkGray);
         WriteLine();
     }
 

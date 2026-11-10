@@ -671,14 +671,14 @@ List<(string Label, Action Run, string? About)> Items()
                 if (config.ShowOverlay)
                 {
                     string StyleName(string s) => s == "classic"
-                        ? "glass panel"
-                        : "minimal (figures only)";
+                        ? "card"
+                        : "compact (figures only)";
                     list.Add(Item($"Overlay style : {StyleName(config.OverlayStyle)}", () =>
                     {
                         var styles = NativeOverlay.Styles;
                         config.OverlayStyle = styles[(Array.IndexOf(styles, config.OverlayStyle) + 1) % styles.Length];
                         NativeOverlay.SetStyle(config.OverlayStyle);
-                    }, "Glass panel: a dark, see-through card. Minimal: only the figures, no background (put it under the minimap; a background shows while it is unlocked, to move it). Enter to switch, applied at once."));
+                    }, "Card: the glass card with the match bar. Compact: only the figures, with a soft shadow (a dashed frame shows while it is unlocked, to move it). Enter to switch, applied at once."));
                     list.Add(Item($"Overlay size : {Percent(config.OverlaySize)}", () =>
                     {
                         config.OverlaySize = OverlayAppearance.Next(OverlayAppearance.Sizes, config.OverlaySize);
@@ -753,7 +753,7 @@ void Draw()
     var width = ConsoleUi.Width;
     var f = new Frame();
     f.Blank();
-    f.Add(new Seg("  ▌ ", ConsoleColor.Yellow), new Seg(ConsoleUi.Spaced(appName), ConsoleColor.White), new Seg($"   v{AppInfo.VersionText}", ConsoleColor.DarkGray));
+    f.Add(new Seg($"  ◆  {appName.ToUpperInvariant()}", ConsoleColor.Yellow), new Seg($"  v{AppInfo.VersionText}", ConsoleColor.DarkGray));
     f.Add("  " + new string('─', Math.Min(width - 4, 76)), ConsoleColor.DarkGray);
 
     // Tabs.

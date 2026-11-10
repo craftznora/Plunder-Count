@@ -3,9 +3,10 @@
 > **Turn on replays in Fortnite first**: *Settings → Game → Replays → Record Replays: On*. Plunder Count only reads these replay files: no game modification, no access to the game's memory. Its only network access is the update check on GitHub (can be turned off).
 
 **What's new in 1.1.0**
-- **New glass HUD**: real see-through glass with soft shadows and smooth corners, status pills (LIVE / IN MATCH) and stat chips
-- **New minimal HUD**: figures with a soft shadow instead of a hard outline
-- **New report**: dashboard with a 30-day trend, stat cards, activity chart, chest mix and cleaner match history
-- Treasures list shows the 10 latest, with "Show all"
+- **New overlay design**: glass card with large light figures, a status light (IDLE / IN MATCH / LIVE / UNLOCKED) and a bar that compares this match with your best one
+- **Compact overlay**: only the figures, with a soft shadow, for a clean HUD
+- **New dashboard**: big total, chests per day with hover details, chest types, treasure sources and match history
+- **New fonts** built in (Sora, Geist, JetBrains Mono): no install, works offline
+- **New console colors** to match
 
 Windows may show *"Windows protected your PC"* (unsigned exe): *More info → Run anyway*.

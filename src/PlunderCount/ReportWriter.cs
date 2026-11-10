@@ -339,7 +339,7 @@ public static class ReportWriter
         sb.Append("</div><div class=\"axis\">");
         for (var i = 0; i < days.Count; i++)
         {
-            var major = i % 7 == 0 || i == 29;
+            var major = (i % 7 == 0 && i < 26) || i == 29; // no label right before "TODAY": they would overlap
             sb.Append($"""<div><span class="t{(major ? " major" : "")}"></span><span class="al">{(major ? DayLabel(i) : "")}</span></div>""");
         }
         sb.Append("</div></section>");

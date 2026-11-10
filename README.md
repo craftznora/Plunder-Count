@@ -39,8 +39,8 @@ Fortnite only writes a replay's decryption key when the match ends, so chests ar
 
 Two styles, switch in **Settings → Overlay style**:
 
-- **Glass panel** (default): a dark, see-through card with your total, the current or last match, your session and treasures.
-- **Minimal**: only the figures with a slim accent bar, no background. Put it under the minimap.
+- **Card** (default): a glass card with your total, the current or last match, a bar comparing it with your best match, your session and treasures. The status light shows IDLE, IN MATCH, LIVE or UNLOCKED.
+- **Compact**: only the figures with a soft shadow, no background. While unlocked a dashed frame shows so you can move it.
 
 | Shortcut | What it does |
 |---|---|
@@ -73,6 +73,6 @@ Install the [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) (Wi
 
 ## License and credits
 
-[MIT](LICENSE). Plunder Count is a customized fork of [Fortnite Chest Counter](https://github.com/LED-N/Fortnite-ChestCounter) by LED-N (MIT), with counting fixes by koiseka. Replay reading is based on [FortniteReplayDecompressor](https://github.com/Shiqan/FortniteReplayDecompressor) by Shiqan (MIT), see [`lib/PATCHES.md`](lib/PATCHES.md).
+[MIT](LICENSE). Fonts: Sora, Geist and JetBrains Mono under the SIL Open Font License (`src/PlunderCount/Assets/Fonts`). Plunder Count is a customized fork of [Fortnite Chest Counter](https://github.com/LED-N/Fortnite-ChestCounter) by LED-N (MIT), with counting fixes by koiseka. Replay reading is based on [FortniteReplayDecompressor](https://github.com/Shiqan/FortniteReplayDecompressor) by Shiqan (MIT), see [`lib/PATCHES.md`](lib/PATCHES.md).
 
 Not affiliated with, endorsed or sponsored by Epic Games. Fortnite is a trademark of Epic Games, Inc.
