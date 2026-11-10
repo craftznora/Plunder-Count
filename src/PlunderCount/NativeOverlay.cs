@@ -14,8 +14,10 @@ public sealed record OverlayRow(string Label, string Value, bool Treasure = fals
 
 /// <param name="Current">Right counter (match in progress, or last match); null = "—".</param>
 /// <param name="CurrentLive">Right counter is the match in progress (green).</param>
+/// <param name="Best">Best match ever (chests), the full length of the tick bar.</param>
+/// <param name="TickValue">Chests shown on the tick bar: the match in progress, else the last match.</param>
 /// <param name="Badge">Header badge ("● LIVE", "● MATCH IN PROGRESS") or null.</param>
-public sealed record OverlayView(string Total, string? Current, string CurrentCaption, bool CurrentLive, string? Badge, IReadOnlyList<OverlayRow> Rows, string Treasures = "0", string Session = "0", string? Last = null);
+public sealed record OverlayView(string Total, string? Current, string CurrentCaption, bool CurrentLive, string? Badge, IReadOnlyList<OverlayRow> Rows, string Treasures = "0", string Session = "0", string? Last = null, int Best = 0, int TickValue = 0);
 
 [SupportedOSPlatform("windows")]
 public static class NativeOverlay

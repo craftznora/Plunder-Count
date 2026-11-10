@@ -23,5 +23,7 @@
   <ItemGroup>
     <!-- What's new of this version: shown once after an update, and used as the GitHub release text (build.yml). -->
     <EmbeddedResource Include="..\..\RELEASE_NOTES.md" LogicalName="ReleaseNotes.md" />
+    <!-- Sora, Geist and JetBrains Mono (SIL Open Font License, Assets/Fonts/OFL-*.txt): overlay (TTF) and report (WOFF2). -->
+    <EmbeddedResource Include="Assets\Fonts\*.ttf;Assets\Fonts\*.woff2" LogicalName="Fonts.%(Filename)%(Extension)" />
   </ItemGroup>
 </Project>

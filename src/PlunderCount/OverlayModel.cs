@@ -51,15 +51,18 @@ public static class OverlayModel
         var treasures = d.Matches.Sum(m => m.TreasureFinds.Count) + liveTreasures;
         rows.Add(new OverlayRow("Treasures", $"★ {L.N(treasures)}", Treasure: true));
 
+        var best = Math.Max(d.Matches.Count > 0 ? d.Matches.Max(m => m.ChestsOpened) : 0, liveChests);
+        var lastChests = last?.ChestsOpened ?? 0;
+
         // Right counter: the match in progress when readable, "…" while it cannot be read yet, else the last match.
         if (live != null)
         {
-            return new OverlayView(L.N(total), L.N(live.ChestsOpened), "current match", true, "● LIVE", rows, L.N(treasures), L.N(session.Sum(m => m.ChestsOpened) + liveChests), last != null ? L.N(last.ChestsOpened) : null);
+            return new OverlayView(L.N(total), L.N(live.ChestsOpened), "current match", true, "● LIVE", rows, L.N(treasures), L.N(session.Sum(m => m.ChestsOpened) + liveChests), last != null ? L.N(last.ChestsOpened) : null, best, liveChests);
         }
         if (inProgress)
         {
-            return new OverlayView(L.N(total), "…", "in progress", true, "● MATCH IN PROGRESS", rows, L.N(treasures), L.N(session.Sum(m => m.ChestsOpened) + liveChests), last != null ? L.N(last.ChestsOpened) : null);
+            return new OverlayView(L.N(total), "…", "in progress", true, "● MATCH IN PROGRESS", rows, L.N(treasures), L.N(session.Sum(m => m.ChestsOpened) + liveChests), last != null ? L.N(last.ChestsOpened) : null, best, 0);
         }
-        return new OverlayView(L.N(total), last != null ? L.N(last.ChestsOpened) : null, LastMatchCaption, false, null, rows, L.N(treasures), L.N(session.Sum(m => m.ChestsOpened) + liveChests), last != null ? L.N(last.ChestsOpened) : null);
+        return new OverlayView(L.N(total), last != null ? L.N(last.ChestsOpened) : null, LastMatchCaption, false, null, rows, L.N(treasures), L.N(session.Sum(m => m.ChestsOpened) + liveChests), last != null ? L.N(last.ChestsOpened) : null, best, lastChests);
     }
 }
