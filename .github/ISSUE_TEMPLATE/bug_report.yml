@@ -12,7 +12,7 @@ body:
   - type: input
     id: version
     attributes:
-      label: Chest Counter version / Version du compteur
+      label: Plunder Count version / Version du compteur
       description: Shown in the window title, e.g. 1.2.0. / Affichée dans le titre de la fenêtre, par ex. 1.2.0.
     validations:
       required: true
@@ -24,5 +24,5 @@ body:
     id: log
     attributes:
       label: errors.log
-      description: Paste the content of %APPDATA%\ChestCounter\errors.log (or attach the file). / Colle le contenu de %APPDATA%\ChestCounter\errors.log (ou joins le fichier).
+      description: Paste the content of %APPDATA%\PlunderCount\errors.log (or attach the file). / Colle le contenu de %APPDATA%\PlunderCount\errors.log (ou joins le fichier).
       render: text
