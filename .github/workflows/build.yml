@@ -27,6 +27,7 @@ jobs:
           files: dist/PlunderCount.exe
           body_path: RELEASE_NOTES.md
       - name: Render previews (overlay + report) to the previews branch
+        timeout-minutes: 8
         if: ${{ !startsWith(github.ref, 'refs/tags/') }}
         shell: pwsh
         env:
@@ -42,7 +43,8 @@ jobs:
             $src = Join-Path $out $page[0]
             if (Test-Path $src) {
               $url = 'file:///' + ($src -replace '\\', '/')
-              Start-Process -FilePath $edge -Wait -ArgumentList @('--headless=new', '--disable-gpu', '--hide-scrollbars', '--force-device-scale-factor=1', "--window-size=$($page[2])", "--screenshot=$(Join-Path $out $page[1])", '--virtual-time-budget=4000', $url)
+              $e = Start-Process -FilePath $edge -ArgumentList @('--headless=new', '--disable-gpu', '--hide-scrollbars', '--force-device-scale-factor=1', "--window-size=$($page[2])", "--screenshot=$(Join-Path $out $page[1])", '--virtual-time-budget=4000', $url) -PassThru
+              if (-not $e.WaitForExit(60000)) { $e.Kill() }
             }
           }
           Get-ChildItem $out | Format-Table Name, Length

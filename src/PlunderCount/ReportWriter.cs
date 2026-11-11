@@ -723,7 +723,7 @@ public static class ReportWriter
         var dot = live ? "#8fd6a8" : v.CurrentLive ? "#e6c88f" : "";
         var dotHtml = dot.Length > 0 ? $"<span class=\"dot\" style=\"background:{dot};box-shadow:0 0 10px {dot}\"></span>" : "";
         return $$"""
-            <!doctype html><html lang="{{L.Code}}"><head><meta charset="utf-8"><meta http-equiv="refresh" content="5">
+            <!doctype html><html lang="{{L.Code}}"><head><meta charset="utf-8"><meta http-equiv="refresh" content="10">
             <title>Plunder Count stream overlay</title>
             <style>{{FontFace}}
             html,body{margin:0;background:transparent}
