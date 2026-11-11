@@ -96,7 +96,9 @@ public static class ReportWriter
         {
             var view = Profiles.View(data, config);
             WriteAtomic(store.ReportPath, Report(config, view, Profiles.List(data)));
-            WriteAtomic(store.OverlayPath, Overlay(OverlayModel.Build(view, null, false)));
+            var idle = OverlayModel.Build(view, null, false);
+            WriteAtomic(store.OverlayPath, Overlay(idle));
+            WriteAtomic(store.StreamPath, Stream(idle));
             WriteAtomic(store.CsvPath, Csv(data));
         }
         catch (Exception ex)
@@ -661,6 +663,7 @@ public static class ReportWriter
         try
         {
             WriteAtomic(store.OverlayPath, Overlay(view));
+            WriteAtomic(store.StreamPath, Stream(view));
         }
         catch
         {
@@ -707,6 +710,34 @@ public static class ReportWriter
             <div class="ticks">{{ticks}}</div>
             <div class="foot mono"><span>SESSION <b>{{H(v.Session)}}</b></span><span>LAST <b>{{H(v.Last ?? "—")}}</b></span><span>TREASURES <b class="v">✦ {{H(v.Treasures)}}</b></span></div>
             </div></div></body></html>
+            """;
+    }
+
+    /// <summary>
+    /// Simple stream overlay for an OBS browser source: one small bar with the total and this session's chests,
+    /// on a transparent background. A dot shows while a match is being played (gold) or counted live (green).
+    /// </summary>
+    public static string Stream(OverlayView v)
+    {
+        var live = v.CurrentLive && v.Current is { } c && c != "…";
+        var dot = live ? "#8fd6a8" : v.CurrentLive ? "#e6c88f" : "";
+        var dotHtml = dot.Length > 0 ? $"<span class=\"dot\" style=\"background:{dot};box-shadow:0 0 10px {dot}\"></span>" : "";
+        return $$"""
+            <!doctype html><html lang="{{L.Code}}"><head><meta charset="utf-8"><meta http-equiv="refresh" content="5">
+            <title>Plunder Count stream overlay</title>
+            <style>{{FontFace}}
+            html,body{margin:0;background:transparent}
+            .bar{display:inline-flex;align-items:center;gap:14px;margin:16px;padding:10px 20px 10px 16px;border-radius:999px;background:rgba(10,10,12,.82);border:1px solid rgba(255,255,255,.1);box-shadow:0 10px 24px -8px rgba(0,0,0,.6);color:#f2efe8;white-space:nowrap}
+            .dia{width:7px;height:7px;transform:rotate(45deg);border:1px solid #e6c88f;flex:none}
+            .lab{font:400 10px "JetBrains Mono",Consolas,monospace;letter-spacing:.22em;color:#8f8d88}
+            .tot{font:300 34px/1 "Sora","Segoe UI",sans-serif;letter-spacing:-.03em;font-variant-numeric:lining-nums tabular-nums}
+            .sep{width:1px;height:22px;background:rgba(255,255,255,.14)}
+            .ses{font:300 20px/1 "Sora","Segoe UI",sans-serif;color:#e6c88f}
+            .dot{width:6px;height:6px;border-radius:50%;flex:none}
+            </style></head><body><div class="bar">
+            <span class="dia"></span><span class="lab">CHESTS</span><span class="tot">{{H(v.Total)}}</span>
+            <span class="sep"></span><span class="ses">+{{H(v.Session)}}</span><span class="lab">SESSION</span>{{dotHtml}}
+            </div></body></html>
             """;
     }
 

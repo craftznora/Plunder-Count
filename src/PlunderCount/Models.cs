@@ -171,6 +171,7 @@ public sealed class Store
     public string DataPath => Path.Combine(Folder, "data.json");
     public string ReportPath => Path.Combine(Folder, "report.html");
     public string OverlayPath => Path.Combine(Folder, "overlay.html");
+    public string StreamPath => Path.Combine(Folder, "stream.html");
     public string CsvPath => Path.Combine(Folder, "matches.csv");
     public string ErrorLogPath => Path.Combine(Folder, "errors.log");
 

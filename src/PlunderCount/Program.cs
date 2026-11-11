@@ -130,6 +130,7 @@ if (previewPath != null)
     {
         File.WriteAllText(Path.Combine(previewDir, "report.html"), ReportWriter.Report(config, previewData, Profiles.List(previewData)));
         File.WriteAllText(Path.Combine(previewDir, "overlay.html"), ReportWriter.Overlay(OverlayModel.Build(previewData, null, false)));
+        File.WriteAllText(Path.Combine(previewDir, "stream.html"), ReportWriter.Stream(OverlayModel.Build(previewData, null, true)));
         Console.WriteLine($"Preview: {Path.Combine(previewDir, "report.html")}");
     }
     if (!OperatingSystem.IsWindows())

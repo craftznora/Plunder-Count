@@ -47,7 +47,7 @@ Two styles, switch in **Settings → Overlay style**:
 | **Ctrl+Shift+O** | Show / hide the overlay, even in game. |
 | **Ctrl+Shift+L** | Lock / unlock. Locked: the mouse goes through it. Unlocked: drag to move, right-click to hide. |
 
-Set Fortnite to **Windowed Fullscreen** (*Settings → Video → Window Mode*) so the overlay can draw on top. Streaming? `overlay.html` is a transparent overlay for an **OBS** browser source.
+Set Fortnite to **Windowed Fullscreen** (*Settings → Video → Window Mode*) so the overlay can draw on top. Streaming? Add an **OBS** browser source with *Local file* ticked: `stream.html` is a simple bar (total and session), `overlay.html` is the full card. Both have a transparent background.
 
 ## The report
 
@@ -55,7 +55,7 @@ Set Fortnite to **Windowed Fullscreen** (*Settings → Video → Window Mode*) s
 
 ## Your data
 
-Stored in `%APPDATA%\PlunderCount` (**Help → Open the data folder**): `report.html`, `overlay.html`, `matches.csv`, `data.json` (your whole history, back it up), `config.json`, `errors.log`. If you used the original Chest Counter before, its data is picked up automatically on first launch.
+Stored in `%APPDATA%\PlunderCount` (**Help → Open the data folder**): `report.html`, `overlay.html`, `stream.html`, `matches.csv`, `data.json` (your whole history, back it up), `config.json`, `errors.log`. If you used the original Chest Counter before, its data is picked up automatically on first launch.
 
 ## Command line options
 
